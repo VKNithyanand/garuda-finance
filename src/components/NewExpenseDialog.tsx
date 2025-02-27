@@ -8,7 +8,7 @@ import { Expense, ExpenseCategory } from "@/utils/mockData";
 import { categorizeThroughAI } from "@/utils/aiUtils";
 import { PlusIcon, Wand2 } from "lucide-react";
 import { useState } from "react";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 interface NewExpenseDialogProps {
   onAddExpense: (expense: Expense) => void;
@@ -45,8 +45,7 @@ const NewExpenseDialog = ({ onAddExpense }: NewExpenseDialogProps) => {
   const handleSubmit = () => {
     if (!newExpense.description || !newExpense.vendor || newExpense.amount <= 0) {
       toast("Missing information", {
-        description: "Please fill in all required fields",
-        variant: "destructive"
+        description: "Please fill in all required fields"
       });
       return;
     }
@@ -71,8 +70,7 @@ const NewExpenseDialog = ({ onAddExpense }: NewExpenseDialogProps) => {
   const handleAutoDetect = () => {
     if (!newExpense.description || !newExpense.vendor) {
       toast("Missing information", {
-        description: "Please provide at least description and vendor for AI categorization",
-        variant: "destructive"
+        description: "Please provide at least description and vendor for AI categorization"
       });
       return;
     }

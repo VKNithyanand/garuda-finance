@@ -41,17 +41,16 @@ const ExpenseTable = ({ expenses, onUpdateExpense, onDeleteExpense, className }:
       if (processedExpense.category !== expense.category) {
         toast(`AI categorized expense as "${processedExpense.category}"`, {
           description: "The expense category was updated based on the description and vendor",
-          icon: <Zap className="h-4 w-4 text-primary" />,
+          icon: <Zap className="h-4 w-4 text-primary" />
         });
       } else {
         toast("AI analysis complete", {
-          description: "The current category seems accurate",
+          description: "The current category seems accurate"
         });
       }
     } catch (error) {
       toast("AI processing failed", {
-        description: "There was an error while analyzing the expense",
-        variant: "destructive",
+        description: "There was an error while analyzing the expense"
       });
     } finally {
       setProcessingId(null);
