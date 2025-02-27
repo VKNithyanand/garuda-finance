@@ -8,8 +8,10 @@ import ExpenseCard from "./ExpenseCard";
 import ExpenseTable from "./ExpenseTable";
 import ForecastCard from "./ForecastCard";
 import NewExpenseDialog from "./NewExpenseDialog";
-import { Expense, ForecastData, CategoryBreakdown, Revenue, batchProcessExpenses, calculateCategoryBreakdown, generateFinancialMetrics, generateInsights, generateMockExpenses, generateMockForecast, generateMockRevenue } from "@/utils/mockData";
+import OptimizationCard from "./OptimizationCard";
+import { Expense, ForecastData, CategoryBreakdown, Revenue, batchProcessExpenses, calculateCategoryBreakdown, generateFinancialMetrics, generateInsights, generateMockExpenses, generateMockRevenue } from "@/utils/mockData";
 import { generateForecast } from "@/utils/forecastUtils";
+import { OptimizationRecommendation, analyzeExpensesForOptimizations } from "@/utils/optimizationUtils";
 import { toast } from "sonner";
 
 const Dashboard = () => {
@@ -17,6 +19,7 @@ const Dashboard = () => {
   const [revenue, setRevenue] = useState<Revenue[]>([]);
   const [forecast, setForecast] = useState<ForecastData[]>([]);
   const [categoryBreakdown, setCategoryBreakdown] = useState<CategoryBreakdown[]>([]);
+  const [optimizationRecommendations, setOptimizationRecommendations] = useState<OptimizationRecommendation[]>([]);
   const [metrics, setMetrics] = useState<{
     totalRevenue: number;
     totalExpenses: number;
@@ -54,6 +57,10 @@ const Dashboard = () => {
         const insightData = generateInsights(revenueData);
         setInsights(insightData);
         
+        // Generate cost optimization recommendations
+        const recommendations = analyzeExpensesForOptimizations(processedExpenses);
+        setOptimizationRecommendations(recommendations);
+        
         setIsLoading(false);
       }, 1000);
     };
@@ -73,6 +80,10 @@ const Dashboard = () => {
       const newMetrics = generateFinancialMetrics(newExpenses, revenue);
       setMetrics(newMetrics);
       
+      // Update optimization recommendations based on changed expenses
+      const newRecommendations = analyzeExpensesForOptimizations(newExpenses);
+      setOptimizationRecommendations(newRecommendations);
+      
       return newExpenses;
     });
   };
@@ -86,6 +97,10 @@ const Dashboard = () => {
       
       const newMetrics = generateFinancialMetrics(newExpenses, revenue);
       setMetrics(newMetrics);
+      
+      // Update optimization recommendations based on changed expenses
+      const newRecommendations = analyzeExpensesForOptimizations(newExpenses);
+      setOptimizationRecommendations(newRecommendations);
       
       toast("Expense deleted successfully");
       
@@ -102,6 +117,10 @@ const Dashboard = () => {
       
       const newMetrics = generateFinancialMetrics(newExpenses, revenue);
       setMetrics(newMetrics);
+      
+      // Update optimization recommendations based on changed expenses
+      const newRecommendations = analyzeExpensesForOptimizations(newExpenses);
+      setOptimizationRecommendations(newRecommendations);
       
       return newExpenses;
     });
@@ -159,6 +178,14 @@ const Dashboard = () => {
           />
           <ExpenseCard 
             data={categoryBreakdown} 
+            className="animate-fade-up"
+          />
+        </div>
+        
+        {/* Optimization */}
+        <div className="mb-8">
+          <OptimizationCard 
+            recommendations={optimizationRecommendations}
             className="animate-fade-up"
           />
         </div>
