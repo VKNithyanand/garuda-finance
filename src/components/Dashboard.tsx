@@ -10,7 +10,7 @@ import ForecastCard from "./ForecastCard";
 import NewExpenseDialog from "./NewExpenseDialog";
 import { Expense, ForecastData, CategoryBreakdown, Revenue, batchProcessExpenses, calculateCategoryBreakdown, generateFinancialMetrics, generateInsights, generateMockExpenses, generateMockForecast, generateMockRevenue } from "@/utils/mockData";
 import { generateForecast } from "@/utils/forecastUtils";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -127,7 +127,6 @@ const Dashboard = () => {
             trendLabel="vs last month"
             icon={<DollarSignIcon className="h-5 w-5 text-primary" />}
             className="animate-fade-up"
-            style={{ animationDelay: '100ms' }}
           />
           <MetricCard 
             title="Total Expenses" 
@@ -135,7 +134,6 @@ const Dashboard = () => {
             valuePrefix="$"
             icon={<FileText className="h-5 w-5 text-primary" />}
             className="animate-fade-up"
-            style={{ animationDelay: '200ms' }}
           />
           <MetricCard 
             title="Profit" 
@@ -143,7 +141,6 @@ const Dashboard = () => {
             valuePrefix="$"
             icon={<PiggyBankIcon className="h-5 w-5 text-primary" />}
             className="animate-fade-up"
-            style={{ animationDelay: '300ms' }}
           />
           <MetricCard 
             title="Profit Margin" 
@@ -151,7 +148,6 @@ const Dashboard = () => {
             valueSuffix="%"
             icon={<TrendingUpIcon className="h-5 w-5 text-primary" />}
             className="animate-fade-up"
-            style={{ animationDelay: '400ms' }}
           />
         </div>
         
@@ -160,12 +156,10 @@ const Dashboard = () => {
           <RevenueChart 
             data={revenue} 
             className="lg:col-span-2 animate-fade-up"
-            style={{ animationDelay: '500ms' }}
           />
           <ExpenseCard 
             data={categoryBreakdown} 
             className="animate-fade-up"
-            style={{ animationDelay: '600ms' }}
           />
         </div>
         
@@ -175,7 +169,6 @@ const Dashboard = () => {
             data={forecast} 
             insights={insights}
             className="animate-fade-up"
-            style={{ animationDelay: '700ms' }}
           />
         </div>
         
@@ -185,7 +178,6 @@ const Dashboard = () => {
           onUpdateExpense={handleUpdateExpense}
           onDeleteExpense={handleDeleteExpense}
           className="animate-fade-up"
-          style={{ animationDelay: '800ms' }}
         />
       </main>
     </div>

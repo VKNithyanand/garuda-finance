@@ -179,6 +179,75 @@ export const generateFinancialMetrics = (expenses: Expense[], revenue: Revenue[]
   };
 };
 
+// Simulate AI processing of expenses
+export const batchProcessExpenses = async (expenses: Expense[]): Promise<Expense[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(expenses);
+    }, 500);
+  });
+};
+
+// Generate insights from revenue data
+export const generateInsights = (revenue: Revenue[]): string[] => {
+  if (revenue.length < 3) {
+    return ["Insufficient data for insights"];
+  }
+  
+  const currentMonth = parseFloat(revenue[revenue.length - 1].amount.toFixed(2));
+  const lastMonth = parseFloat(revenue[revenue.length - 2].amount.toFixed(2));
+  const lastYear = parseFloat(revenue[0].amount.toFixed(2));
+  
+  const monthlyGrowth = ((currentMonth - lastMonth) / lastMonth) * 100;
+  const yearlyGrowth = ((currentMonth - lastYear) / lastYear) * 100;
+  
+  const insights = [];
+  
+  if (monthlyGrowth > 0) {
+    insights.push(`Revenue increased by ${monthlyGrowth.toFixed(1)}% compared to last month.`);
+  } else {
+    insights.push(`Revenue decreased by ${Math.abs(monthlyGrowth).toFixed(1)}% compared to last month.`);
+  }
+  
+  if (yearlyGrowth > 0) {
+    insights.push(`Annual growth is positive at ${yearlyGrowth.toFixed(1)}%.`);
+  } else {
+    insights.push(`Annual growth is negative at ${Math.abs(yearlyGrowth).toFixed(1)}%.`);
+  }
+  
+  // Add trend analysis
+  const recentTrend = calculateRecentTrend(revenue.slice(-6).map(r => r.amount));
+  if (recentTrend > 3) {
+    insights.push("Strong growth trend detected in the last 6 months.");
+  } else if (recentTrend > 0) {
+    insights.push("Moderate growth trend detected in the last 6 months.");
+  } else if (recentTrend > -3) {
+    insights.push("Slight decline in revenue over the last 6 months.");
+  } else {
+    insights.push("Significant downward trend in the last 6 months.");
+  }
+  
+  // Add seasonal insight if data shows patterns
+  if (revenue.length >= 12) {
+    insights.push("Consider analyzing seasonal patterns to optimize your marketing strategy.");
+  }
+  
+  return insights;
+};
+
+// Helper function to calculate the trend over a series of numbers
+const calculateRecentTrend = (numbers: number[]): number => {
+  if (numbers.length < 2) return 0;
+  
+  let sum = 0;
+  for (let i = 1; i < numbers.length; i++) {
+    const percentChange = ((numbers[i] - numbers[i-1]) / numbers[i-1]) * 100;
+    sum += percentChange;
+  }
+  
+  return sum / (numbers.length - 1);
+};
+
 // Initialize mock data
 export const mockExpenses = generateMockExpenses(50);
 export const mockRevenue = generateMockRevenue(12);

@@ -1,8 +1,14 @@
 
 import Dashboard from "@/components/Dashboard";
+import { Toaster } from "sonner";
 
 const Index = () => {
-  return <Dashboard />;
+  return (
+    <>
+      <Dashboard />
+      <Toaster position="top-right" />
+    </>
+  );
 };
 
 export default Index;

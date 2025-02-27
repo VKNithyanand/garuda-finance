@@ -6,7 +6,7 @@ import { Expense } from "@/utils/mockData";
 import { processExpenseWithAI } from "@/utils/aiUtils";
 import { FileEdit, MoreVertical, Trash2, Zap } from "lucide-react";
 import { useState } from "react";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
