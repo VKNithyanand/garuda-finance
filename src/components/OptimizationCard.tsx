@@ -2,7 +2,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Coins, TrendingDown, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Coins, TrendingDown, CheckCircle2, ArrowRight, Info } from "lucide-react";
 import { OptimizationRecommendation, calculatePotentialSavings } from "@/utils/optimizationUtils";
 import { useEffect, useState } from "react";
 import { 
@@ -11,6 +12,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { toast } from "sonner";
 
 interface OptimizationCardProps {
   recommendations: OptimizationRecommendation[];
@@ -19,6 +21,8 @@ interface OptimizationCardProps {
 
 const OptimizationCard = ({ recommendations, className }: OptimizationCardProps) => {
   const [visibleRecommendations, setVisibleRecommendations] = useState<OptimizationRecommendation[]>([]);
+  const [implementedItems, setImplementedItems] = useState<string[]>([]);
+  const [savings, setSavings] = useState(0);
   const totalPotentialSavings = calculatePotentialSavings(recommendations);
   
   useEffect(() => {
@@ -50,6 +54,20 @@ const OptimizationCard = ({ recommendations, className }: OptimizationCardProps)
       maximumFractionDigits: 0,
     }).format(value);
   };
+
+  const handleImplement = (id: string, savings: number) => {
+    if (!implementedItems.includes(id)) {
+      setImplementedItems([...implementedItems, id]);
+      setSavings(prev => prev + savings);
+      toast.success("Optimization implemented!", {
+        description: `You've added ${formatCurrency(savings)} in potential savings.`,
+        action: {
+          label: "View Report",
+          onClick: () => console.log("Optimization report viewed"),
+        },
+      });
+    }
+  };
   
   return (
     <Card className={className}>
@@ -59,11 +77,17 @@ const OptimizationCard = ({ recommendations, className }: OptimizationCardProps)
             <CardTitle className="text-lg font-medium">Cost Optimization</CardTitle>
             <CardDescription>AI-powered cost-saving opportunities</CardDescription>
           </div>
-          <div className="flex items-center bg-primary/10 p-2 rounded-lg">
-            <Coins className="h-5 w-5 text-primary mr-2" />
-            <div>
-              <p className="text-sm font-medium">Potential Savings</p>
-              <p className="text-xl font-bold text-primary">{formatCurrency(totalPotentialSavings)}</p>
+          <div className="flex items-center space-x-4">
+            <div className="bg-green-50 text-green-700 p-2 rounded-lg">
+              <p className="text-sm font-medium">Implemented Savings</p>
+              <p className="text-xl font-bold">{formatCurrency(savings)}</p>
+            </div>
+            <div className="flex items-center bg-primary/10 p-2 rounded-lg">
+              <Coins className="h-5 w-5 text-primary mr-2" />
+              <div>
+                <p className="text-sm font-medium">Potential Savings</p>
+                <p className="text-xl font-bold text-primary">{formatCurrency(totalPotentialSavings)}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -77,9 +101,14 @@ const OptimizationCard = ({ recommendations, className }: OptimizationCardProps)
         ) : (
           <Accordion type="single" collapsible className="w-full">
             {visibleRecommendations.map((recommendation, index) => (
-              <AccordionItem key={recommendation.id} value={recommendation.id} className="animate-fade-in" style={{ animationDelay: `${index * 150}ms` }}>
+              <AccordionItem 
+                key={recommendation.id} 
+                value={recommendation.id} 
+                className={`animate-fade-in ${implementedItems.includes(recommendation.id) ? 'border-l-4 border-green-500' : ''}`} 
+                style={{ animationDelay: `${index * 150}ms` }}
+              >
                 <AccordionTrigger className="hover:no-underline">
-                  <div className="flex flex-col items-start text-left">
+                  <div className="flex flex-col items-start text-left w-full">
                     <div className="flex items-center w-full">
                       <span className="font-medium">{recommendation.title}</span>
                       <Badge variant="outline" className="ml-auto">
@@ -109,16 +138,35 @@ const OptimizationCard = ({ recommendations, className }: OptimizationCardProps)
                       <span className="text-sm font-medium">
                         Potential savings: <span className="text-primary font-bold">{formatCurrency(recommendation.potentialSavings)}</span>
                       </span>
-                      <button className="inline-flex items-center justify-center text-xs bg-primary/10 hover:bg-primary/20 text-primary font-medium py-1 px-3 rounded-full transition-colors">
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                        Implement
-                      </button>
+                      {implementedItems.includes(recommendation.id) ? (
+                        <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Implemented
+                        </Badge>
+                      ) : (
+                        <Button 
+                          size="sm" 
+                          className="inline-flex items-center justify-center text-xs bg-primary/10 hover:bg-primary/20 text-primary font-medium py-1 px-3 rounded-full transition-colors"
+                          variant="ghost"
+                          onClick={() => handleImplement(recommendation.id, recommendation.potentialSavings)}
+                        >
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Implement
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
+        )}
+        {visibleRecommendations.length > 0 && (
+          <div className="mt-6 flex justify-end">
+            <Button variant="outline" className="flex items-center gap-2">
+              Generate Optimization Report <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
         )}
       </CardContent>
     </Card>
