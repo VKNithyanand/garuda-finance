@@ -65,7 +65,7 @@ export const processExpenseWithAI = async (expense: Expense): Promise<Expense> =
     }
   } else {
     // Check if current category makes sense, suggest a better one if needed
-    const categoryPatterns: Record<ExpenseCategory, string[]> = {
+    const categoryPatterns: Record<string, string[]> = {
       'Rent': ['rent', 'lease', 'property', 'office space'],
       'Payroll': ['salary', 'wage', 'payroll', 'bonus', 'compensation'],
       'Marketing': ['ad', 'campaign', 'promotion', 'marketing', 'advertising'],
