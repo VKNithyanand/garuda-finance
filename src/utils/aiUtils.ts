@@ -2,6 +2,34 @@
 import { Expense, ExpenseCategory } from './mockData';
 import { toast } from 'sonner';
 
+// Function to categorize expenses based on description and vendor
+export const categorizeThroughAI = (description: string, vendor: string): ExpenseCategory => {
+  const descLower = description.toLowerCase();
+  const vendorLower = vendor.toLowerCase();
+  
+  if (descLower.includes('rent') || vendorLower.includes('property')) {
+    return 'Rent';
+  } else if (descLower.includes('salary') || descLower.includes('payroll') || vendorLower.includes('adp')) {
+    return 'Payroll';
+  } else if (descLower.includes('ad') || descLower.includes('campaign') || vendorLower.includes('facebook') || vendorLower.includes('google')) {
+    return 'Marketing';
+  } else if (descLower.includes('paper') || descLower.includes('supplies') || vendorLower.includes('staples') || vendorLower.includes('office')) {
+    return 'Supplies';
+  } else if (descLower.includes('electric') || descLower.includes('water') || descLower.includes('gas') || vendorLower.includes('utility')) {
+    return 'Utilities';
+  } else if (descLower.includes('flight') || descLower.includes('hotel') || vendorLower.includes('airline') || vendorLower.includes('travel')) {
+    return 'Travel';
+  } else if (descLower.includes('subscription') || descLower.includes('software') || vendorLower.includes('adobe') || vendorLower.includes('microsoft')) {
+    return 'Software';
+  } else if (descLower.includes('computer') || descLower.includes('hardware') || vendorLower.includes('dell') || vendorLower.includes('apple')) {
+    return 'Equipment';
+  } else if (descLower.includes('insurance') || descLower.includes('policy') || vendorLower.includes('insurance')) {
+    return 'Insurance';
+  } else {
+    return 'Uncategorized';
+  }
+};
+
 // Simulate AI processing of an expense
 export const processExpenseWithAI = async (expense: Expense): Promise<Expense> => {
   // Simulate API delay
