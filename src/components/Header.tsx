@@ -35,9 +35,8 @@ const Header = () => {
       setSearchResults(mockResults);
       
       toast({
-        title: `Found ${mockResults.length} results`,
         description: mockResults.length ? 
-          `Search results for "${query}"` : 
+          `Found ${mockResults.length} results for "${query}"` : 
           `No results found for "${query}"`
       });
     }, 500);

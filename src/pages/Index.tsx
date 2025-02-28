@@ -6,7 +6,7 @@ const Index = () => {
   return (
     <>
       <Dashboard />
-      <Toaster position="top-right" />
+      <Toaster richColors position="top-right" closeButton />
     </>
   );
 };
