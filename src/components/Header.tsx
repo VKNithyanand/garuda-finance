@@ -6,11 +6,10 @@ import { useTheme } from "next-themes";
 import SearchBar from "@/components/SearchBar";
 import NotificationsPanel from "@/components/NotificationsPanel";
 import ProfileSection from "@/components/ProfileSection";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
-  const { toast } = useToast();
   const [searchResults, setSearchResults] = useState<any[]>([]);
 
   const handleSearch = (query: string) => {
@@ -58,7 +57,10 @@ const Header = () => {
             size="icon"
             aria-label="Toggle Theme"
             className="mr-2"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={() => {
+              console.log("Changing theme from", theme, "to", theme === "dark" ? "light" : "dark");
+              setTheme(theme === "dark" ? "light" : "dark");
+            }}
           >
             {theme === "dark" ? (
               <SunIcon className="h-5 w-5" />

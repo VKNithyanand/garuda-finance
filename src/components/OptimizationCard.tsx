@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Coins, TrendingDown, CheckCircle2, ArrowRight, Info } from "lucide-react";
+import { Coins, TrendingDown, CheckCircle2, ArrowRight } from "lucide-react";
 import { OptimizationRecommendation, calculatePotentialSavings } from "@/utils/optimizationUtils";
 import { useEffect, useState } from "react";
 import { 

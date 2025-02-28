@@ -1,17 +1,32 @@
 
 import { useState } from "react";
-import { UserRound, Settings, LogOut, UserCog, CreditCard, KeyRound, HelpCircle, BellRing } from "lucide-react";
+import { UserRound, Settings, LogOut, CreditCard, KeyRound, HelpCircle, BellRing } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuGroup, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 const ProfileSection = () => {
-  const { toast } = useToast();
   const [openSettings, setOpenSettings] = useState(false);
   const [profile, setProfile] = useState({
     name: "Jane Cooper",
@@ -27,15 +42,13 @@ const ProfileSection = () => {
   
   const handleSettingsSave = () => {
     setOpenSettings(false);
-    toast({
-      title: "Settings updated",
+    toast.success("Settings updated", {
       description: "Your profile settings have been saved successfully."
     });
   };
   
   const handleLogout = () => {
-    toast({
-      title: "Logged out",
+    toast.success("Logged out", {
       description: "You have been logged out successfully."
     });
   };
@@ -67,12 +80,10 @@ const ProfileSection = () => {
               <UserRound className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
-            <DialogTrigger asChild onClick={() => setOpenSettings(true)}>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-            </DialogTrigger>
+            <DropdownMenuItem onClick={() => setOpenSettings(true)}>
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
             <DropdownMenuItem>
               <CreditCard className="mr-2 h-4 w-4" />
               <span>Billing</span>

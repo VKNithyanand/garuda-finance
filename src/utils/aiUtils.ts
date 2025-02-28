@@ -65,8 +65,8 @@ export const processExpenseWithAI = async (expense: Expense): Promise<Expense> =
     }
   } else {
     // Check if current category makes sense, suggest a better one if needed
-    // Fix: Use type assertion to make TypeScript understand this is a valid key
-    const categoryPatterns: Record<string, string[]> = {
+    // Define the category patterns with proper type
+    const categoryPatterns: Record<ExpenseCategory, string[]> = {
       'Rent': ['rent', 'lease', 'property', 'office space'],
       'Payroll': ['salary', 'wage', 'payroll', 'bonus', 'compensation'],
       'Marketing': ['ad', 'campaign', 'promotion', 'marketing', 'advertising'],
@@ -93,7 +93,6 @@ export const processExpenseWithAI = async (expense: Expense): Promise<Expense> =
       
       if (score > bestMatchScore) {
         bestMatchScore = score;
-        // Fix: Type assertion to ensure category is treated as ExpenseCategory
         bestMatch = category as ExpenseCategory;
       }
     });
