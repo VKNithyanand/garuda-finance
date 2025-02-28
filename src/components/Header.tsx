@@ -1,51 +1,105 @@
 
-import { BellIcon, MenuIcon, SearchIcon, UserCircleIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { MoonIcon, SunIcon } from "lucide-react";
+import { useTheme } from "next-themes";
+import SearchBar from "@/components/SearchBar";
+import NotificationsPanel from "@/components/NotificationsPanel";
+import ProfileSection from "@/components/ProfileSection";
+import { useToast } from "@/components/ui/use-toast";
 
 const Header = () => {
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+
+  const handleSearch = (query: string) => {
+    if (!query) {
+      setSearchResults([]);
+      return;
+    }
+    
+    // In a real app, this would search through your data
+    // For now, we'll simulate some results
+    console.log("Searching for:", query);
+    
+    // Simulate API call
+    setTimeout(() => {
+      const mockResults = [
+        { id: 1, type: 'expense', title: 'Office Supplies', amount: 120.50 },
+        { id: 2, type: 'report', title: 'Q2 Financial Report', date: '2023-06-30' },
+        { id: 3, type: 'expense', title: 'Client Dinner', amount: 85.75 }
+      ].filter(item => 
+        item.title.toLowerCase().includes(query.toLowerCase())
+      );
+      
+      setSearchResults(mockResults);
+      
+      toast({
+        title: `Found ${mockResults.length} results`,
+        description: mockResults.length ? 
+          `Search results for "${query}"` : 
+          `No results found for "${query}"`
+      });
+    }, 500);
+  };
 
   return (
-    <header className="w-full px-6 py-4 flex items-center justify-between border-b border-border bg-white/80 backdrop-blur-md z-10 sticky top-0">
-      <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="icon" className="md:hidden">
-          <MenuIcon size={20} />
-        </Button>
-        <h1 className="text-xl font-medium hidden md:block">SmartExpense</h1>
-      </div>
-      
-      <div className={`absolute left-0 right-0 mx-auto transition-all duration-300 ease-in-out ${isSearchOpen ? 'w-[40%] opacity-100' : 'w-0 opacity-0'}`}>
-        {isSearchOpen && (
-          <div className="relative w-full">
-            <Input
-              className="w-full pl-10 pr-2 py-2 bg-muted border-0 rounded-full focus-visible:ring-primary"
-              placeholder="Search expenses, vendors..."
-              autoFocus
-            />
-            <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+    <header className="border-b">
+      <div className="flex h-16 items-center px-4 sm:px-6 lg:px-8">
+        <div className="font-semibold text-lg">Financial Dashboard</div>
+        <div className="flex flex-1 items-center justify-end space-x-4">
+          <div className="w-full max-w-xl">
+            <SearchBar onSearch={handleSearch} />
           </div>
-        )}
+          <NotificationsPanel />
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Toggle Theme"
+            className="mr-2"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            {theme === "dark" ? (
+              <SunIcon className="h-5 w-5" />
+            ) : (
+              <MoonIcon className="h-5 w-5" />
+            )}
+          </Button>
+          <ProfileSection />
+        </div>
       </div>
       
-      <div className="flex items-center space-x-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsSearchOpen(!isSearchOpen)}
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <SearchIcon size={20} />
-        </Button>
-        <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
-          <BellIcon size={20} />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
-        </Button>
-        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-          <UserCircleIcon size={20} />
-        </Button>
-      </div>
+      {/* Display search results if available */}
+      {searchResults.length > 0 && (
+        <div className="border-t px-4 py-3 sm:px-6 lg:px-8 bg-muted/30">
+          <h3 className="text-sm font-medium mb-2">Search Results</h3>
+          <div className="space-y-2">
+            {searchResults.map((result) => (
+              <div key={result.id} className="flex items-center justify-between p-2 rounded-md border bg-card">
+                <div>
+                  <span className="text-sm font-medium">{result.title}</span>
+                  <span className="text-xs text-muted-foreground ml-2">
+                    {result.type.charAt(0).toUpperCase() + result.type.slice(1)}
+                  </span>
+                </div>
+                <div>
+                  {result.type === 'expense' && (
+                    <span className="text-sm font-medium">
+                      ${result.amount.toFixed(2)}
+                    </span>
+                  )}
+                  {result.type === 'report' && (
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(result.date).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </header>
   );
 };

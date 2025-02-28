@@ -64,6 +64,7 @@ const FinancialReportCard = () => {
   const [generatedReport, setGeneratedReport] = useState<GeneratedReport | null>(null);
   const [reportHistory, setReportHistory] = useState<GeneratedReport[]>([]);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
+  const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
 
   // Load previously generated reports from storage
   useEffect(() => {
@@ -85,7 +86,7 @@ const FinancialReportCard = () => {
     if (!selectedReport) return;
     
     setIsGenerating(true);
-    toast("Generating report...", {
+    toast.info("Generating report...", {
       description: `Your ${selectedReport.title} is being prepared.`
     });
     
@@ -113,6 +114,9 @@ const FinancialReportCard = () => {
       toast.success("Report ready!", {
         description: `Your ${selectedReport.title} has been generated successfully.`
       });
+      
+      // Close the dialog
+      setIsGenerateDialogOpen(false);
     } catch (error) {
       console.error("Report generation failed:", error);
       toast.error("Report generation failed", {
@@ -216,9 +220,9 @@ const FinancialReportCard = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Dialog>
+        <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="w-full mb-4">Generate a new report</Button>
+            <Button className="w-full mb-4" onClick={() => setIsGenerateDialogOpen(true)}>Generate a new report</Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -326,7 +330,7 @@ const FinancialReportCard = () => {
         </div>
         <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="link" size="sm" className="h-auto p-0 text-xs">
+            <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => setIsHistoryDialogOpen(true)}>
               View report history
             </Button>
           </DialogTrigger>
