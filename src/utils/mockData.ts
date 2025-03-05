@@ -235,6 +235,68 @@ export const generateInsights = (revenue: Revenue[]): string[] => {
   return insights;
 };
 
+// New function to generate insights from forecast data
+export const generateInsightsFromForecast = (forecast: ForecastData[]): string[] => {
+  if (forecast.length < 2) {
+    return ["Insufficient data for insights"];
+  }
+  
+  const insights: string[] = [];
+  
+  // Calculate average growth rate
+  let totalGrowth = 0;
+  for (let i = 1; i < forecast.length; i++) {
+    const prevValue = forecast[i-1].predicted;
+    const currValue = forecast[i].predicted;
+    const growth = ((currValue - prevValue) / prevValue) * 100;
+    totalGrowth += growth;
+  }
+  
+  const avgGrowth = totalGrowth / (forecast.length - 1);
+  
+  // Overall growth trend insight
+  if (avgGrowth > 5) {
+    insights.push(`Strong growth forecast: Average monthly increase of ${avgGrowth.toFixed(1)}%.`);
+  } else if (avgGrowth > 2) {
+    insights.push(`Moderate growth forecast: Average monthly increase of ${avgGrowth.toFixed(1)}%.`);
+  } else if (avgGrowth > 0) {
+    insights.push(`Slight growth forecast: Average monthly increase of ${avgGrowth.toFixed(1)}%.`);
+  } else {
+    insights.push(`Declining forecast: Average monthly decrease of ${Math.abs(avgGrowth).toFixed(1)}%.`);
+  }
+  
+  // First to last month comparison
+  const firstMonth = forecast[0].predicted;
+  const lastMonth = forecast[forecast.length - 1].predicted;
+  const totalChange = ((lastMonth - firstMonth) / firstMonth) * 100;
+  
+  insights.push(
+    `Total forecasted ${totalChange > 0 ? 'growth' : 'decline'} of ${Math.abs(totalChange).toFixed(1)}% over the next ${forecast.length} months.`
+  );
+  
+  // Uncertainty analysis
+  const lastMonthUncertainty = ((forecast[forecast.length - 1].upperBound - forecast[forecast.length - 1].lowerBound) / forecast[forecast.length - 1].predicted) * 100;
+  
+  if (lastMonthUncertainty > 30) {
+    insights.push(`High uncertainty in long-term forecast (±${(lastMonthUncertainty/2).toFixed(1)}%). Consider shorter planning cycles.`);
+  } else if (lastMonthUncertainty > 15) {
+    insights.push(`Moderate uncertainty in long-term forecast (±${(lastMonthUncertainty/2).toFixed(1)}%).`);
+  } else {
+    insights.push(`Low uncertainty in forecast (±${(lastMonthUncertainty/2).toFixed(1)}%). High confidence in predictions.`);
+  }
+  
+  // Actionable recommendation
+  if (avgGrowth > 3) {
+    insights.push("With strong projected growth, consider investing in capacity expansion or new product development.");
+  } else if (avgGrowth < 0) {
+    insights.push("With projected decline, focus on cost optimization and exploring new revenue streams.");
+  } else {
+    insights.push("With stable growth projections, focus on operational efficiency and customer retention.");
+  }
+  
+  return insights;
+};
+
 // Helper function to calculate the trend over a series of numbers
 const calculateRecentTrend = (numbers: number[]): number => {
   if (numbers.length < 2) return 0;

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { CircleDashed, TrendingUp, Calendar, Download } from "lucide-react";
-import { generateMockForecast, ForecastData, generateInsights } from "@/utils/mockData";
+import { generateMockForecast, ForecastData, generateInsightsFromForecast } from "@/utils/mockData";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 const AIForecast = () => {
@@ -40,7 +40,7 @@ const AIForecast = () => {
     setForecastData(data);
     
     // Generate insights based on the forecast
-    const newInsights = generateInsights(data);
+    const newInsights = generateInsightsFromForecast(data);
     setInsights(newInsights);
     
     setIsLoading(false);
