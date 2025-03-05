@@ -1,3 +1,4 @@
+
 import { Expense, ExpenseCategory } from './mockData';
 import { toast } from 'sonner';
 
@@ -38,72 +39,17 @@ export const processExpenseWithAI = async (expense: Expense): Promise<Expense> =
   const updatedExpense = { ...expense };
   
   // Logic to categorize based on description and vendor
-  const description = expense.description.toLowerCase();
-  const vendor = expense.vendor.toLowerCase();
+  const suggestedCategory = categorizeThroughAI(expense.description, expense.vendor);
   
-  if (expense.category === 'Uncategorized' as ExpenseCategory) {
-    // Try to categorize uncategorized expenses
-    if (description.includes('rent') || vendor.includes('property')) {
-      updatedExpense.category = 'Rent';
-    } else if (description.includes('salary') || description.includes('payroll') || vendor.includes('adp')) {
-      updatedExpense.category = 'Payroll';
-    } else if (description.includes('ad') || description.includes('campaign') || vendor.includes('facebook') || vendor.includes('google')) {
-      updatedExpense.category = 'Marketing';
-    } else if (description.includes('paper') || description.includes('supplies') || vendor.includes('staples') || vendor.includes('office')) {
-      updatedExpense.category = 'Supplies';
-    } else if (description.includes('electric') || description.includes('water') || description.includes('gas') || vendor.includes('utility')) {
-      updatedExpense.category = 'Utilities';
-    } else if (description.includes('flight') || description.includes('hotel') || vendor.includes('airline') || vendor.includes('travel')) {
-      updatedExpense.category = 'Travel';
-    } else if (description.includes('subscription') || description.includes('software') || vendor.includes('adobe') || vendor.includes('microsoft')) {
-      updatedExpense.category = 'Software';
-    } else if (description.includes('computer') || description.includes('hardware') || vendor.includes('dell') || vendor.includes('apple')) {
-      updatedExpense.category = 'Equipment';
-    } else if (description.includes('insurance') || description.includes('policy') || vendor.includes('insurance')) {
-      updatedExpense.category = 'Insurance';
-    }
-  } else {
-    // Check if current category makes sense, suggest a better one if needed
-    // Define the category patterns with proper type
-    const categoryPatterns: Record<string, string[]> = {
-      'Rent': ['rent', 'lease', 'property', 'office space'],
-      'Payroll': ['salary', 'wage', 'payroll', 'bonus', 'compensation'],
-      'Marketing': ['ad', 'campaign', 'promotion', 'marketing', 'advertising'],
-      'Supplies': ['paper', 'supplies', 'office supplies', 'stationery'],
-      'Utilities': ['electric', 'water', 'gas', 'utility', 'power'],
-      'Travel': ['flight', 'hotel', 'travel', 'trip', 'fare'],
-      'Software': ['subscription', 'software', 'license', 'saas'],
-      'Equipment': ['computer', 'hardware', 'printer', 'equipment'],
-      'Insurance': ['insurance', 'policy', 'coverage', 'premium'],
-      'Uncategorized': []
-    };
-    
-    // Check if the expense matches a different category better
-    let bestMatch: ExpenseCategory = 'Uncategorized';
-    let bestMatchScore = 0;
-    
-    Object.entries(categoryPatterns).forEach(([category, patterns]) => {
-      let score = 0;
-      patterns.forEach(pattern => {
-        if (description.includes(pattern) || vendor.includes(pattern)) {
-          score++;
-        }
-      });
-      
-      if (score > bestMatchScore) {
-        bestMatchScore = score;
-        bestMatch = category as ExpenseCategory;
-      }
-    });
-    
-    if (bestMatchScore > 0 && bestMatch !== expense.category) {
-      updatedExpense.category = bestMatch;
-    }
+  // If expense is uncategorized or the suggested category is different from current
+  if (expense.category === 'Uncategorized' || (suggestedCategory !== expense.category && Math.random() > 0.3)) {
+    updatedExpense.category = suggestedCategory;
   }
   
   return updatedExpense;
 };
 
+// Analyze expense trends
 export const analyzeExpenseTrends = async (expenses: Expense[]): Promise<any> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 2000));
@@ -214,4 +160,79 @@ export const detectAnomalies = async (expenses: Expense[]): Promise<any> => {
       savings: potentialDuplicates.reduce((sum, { expense1 }) => sum + expense1.amount, 0)
     }
   };
+};
+
+// New function to implement AI suggestions for cost optimization
+export const generateCostOptimizationSuggestions = async (expenses: Expense[]): Promise<string[]> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  const suggestions: string[] = [];
+  
+  // Group expenses by category
+  const expensesByCategory: Record<string, number> = {};
+  expenses.forEach(expense => {
+    if (!expensesByCategory[expense.category]) {
+      expensesByCategory[expense.category] = 0;
+    }
+    expensesByCategory[expense.category] += expense.amount;
+  });
+  
+  // Total expenses
+  const totalExpenses = Object.values(expensesByCategory).reduce((sum, amount) => sum + amount, 0);
+  
+  // Check for high spending categories
+  const categoryThresholds: Record<string, number> = {
+    'Software': 0.12, // 12% of total expenses
+    'Travel': 0.10,
+    'Supplies': 0.08,
+    'Marketing': 0.15,
+  };
+  
+  Object.entries(expensesByCategory).forEach(([category, amount]) => {
+    const percentage = amount / totalExpenses;
+    const threshold = categoryThresholds[category as ExpenseCategory] || 0.20;
+    
+    if (percentage > threshold) {
+      if (category === 'Software') {
+        suggestions.push(`Your software expenses (${(percentage * 100).toFixed(1)}% of total) seem high. Consider auditing subscriptions for unused services.`);
+      } else if (category === 'Travel') {
+        suggestions.push(`Travel expenses represent ${(percentage * 100).toFixed(1)}% of your total spending. Consider implementing a stricter travel policy or using video conferencing.`);
+      } else if (category === 'Supplies') {
+        suggestions.push(`Office supplies account for ${(percentage * 100).toFixed(1)}% of expenses. Consider bulk purchasing or negotiating with suppliers for better rates.`);
+      } else if (category === 'Marketing') {
+        suggestions.push(`Marketing costs (${(percentage * 100).toFixed(1)}% of total) are significant. Review campaign ROI and focus on high-performing channels.`);
+      }
+    }
+  });
+  
+  // Duplicate expense detection
+  const { potentialDuplicates } = await detectAnomalies(expenses);
+  if (potentialDuplicates.length > 0) {
+    suggestions.push(`Detected ${potentialDuplicates.length} potential duplicate transactions that could save approximately $${potentialDuplicates.reduce((sum, { expense1 }) => sum + expense1.amount, 0).toFixed(2)}.`);
+  }
+  
+  // Vendor analysis (find multiple vendors for same category)
+  const vendorsByCategory: Record<string, Set<string>> = {};
+  expenses.forEach(expense => {
+    if (!vendorsByCategory[expense.category]) {
+      vendorsByCategory[expense.category] = new Set();
+    }
+    vendorsByCategory[expense.category].add(expense.vendor);
+  });
+  
+  Object.entries(vendorsByCategory).forEach(([category, vendors]) => {
+    if (vendors.size > 3 && ['Supplies', 'Software', 'Equipment'].includes(category)) {
+      suggestions.push(`You're using ${vendors.size} different vendors for ${category}. Consider consolidating to negotiate better rates.`);
+    }
+  });
+  
+  // Add general suggestions if we don't have enough specific ones
+  if (suggestions.length < 3) {
+    suggestions.push("Consider implementing a formal approval process for expenses above a certain threshold.");
+    suggestions.push("Regularly review recurring expenses to identify services that are no longer needed.");
+    suggestions.push("Negotiate early payment discounts with your regular vendors.");
+  }
+  
+  return suggestions;
 };

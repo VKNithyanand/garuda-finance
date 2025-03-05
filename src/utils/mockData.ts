@@ -181,10 +181,47 @@ export const generateFinancialMetrics = (expenses: Expense[], revenue: Revenue[]
 
 // Simulate AI processing of expenses
 export const batchProcessExpenses = async (expenses: Expense[]): Promise<Expense[]> => {
+  // In a real application, this would call an API endpoint to process expenses
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(expenses);
-    }, 500);
+      // Simulate AI categorization
+      const processedExpenses = expenses.map(expense => {
+        // Only recategorize some expenses to make it realistic
+        if (expense.category === 'Uncategorized' || Math.random() > 0.7) {
+          // Determine category based on description and vendor
+          let newCategory: ExpenseCategory = expense.category;
+          
+          const desc = expense.description.toLowerCase();
+          const vendor = expense.vendor.toLowerCase();
+          
+          if (desc.includes('rent') || vendor.includes('property')) {
+            newCategory = 'Rent';
+          } else if (desc.includes('salary') || desc.includes('payroll')) {
+            newCategory = 'Payroll';
+          } else if (desc.includes('marketing') || desc.includes('campaign') || vendor.includes('facebook')) {
+            newCategory = 'Marketing';
+          } else if (desc.includes('supplies') || vendor.includes('staples') || vendor.includes('office')) {
+            newCategory = 'Supplies';
+          } else if (desc.includes('utility') || desc.includes('electric') || desc.includes('water')) {
+            newCategory = 'Utilities';
+          } else if (desc.includes('travel') || desc.includes('flight') || vendor.includes('airline')) {
+            newCategory = 'Travel';
+          } else if (desc.includes('software') || desc.includes('subscription') || vendor.includes('adobe')) {
+            newCategory = 'Software';
+          } else if (desc.includes('equipment') || desc.includes('hardware') || vendor.includes('dell')) {
+            newCategory = 'Equipment';
+          } else if (desc.includes('insurance') || vendor.includes('insurance')) {
+            newCategory = 'Insurance';
+          }
+          
+          return { ...expense, category: newCategory };
+        }
+        
+        return expense;
+      });
+      
+      resolve(processedExpenses);
+    }, 1500); // Simulate API delay
   });
 };
 
@@ -235,7 +272,7 @@ export const generateInsights = (revenue: Revenue[]): string[] => {
   return insights;
 };
 
-// New function to generate insights from forecast data
+// Generate insights from forecast data
 export const generateInsightsFromForecast = (forecast: ForecastData[]): string[] => {
   if (forecast.length < 2) {
     return ["Insufficient data for insights"];
@@ -316,3 +353,59 @@ export const mockRevenue = generateMockRevenue(12);
 export const mockForecast = generateMockForecast(6);
 export const mockCategoryBreakdown = calculateCategoryBreakdown(mockExpenses);
 export const mockFinancialMetrics = generateFinancialMetrics(mockExpenses, mockRevenue);
+
+// New function to generate simulated AI model metrics for settings page
+export const generateAIModelMetrics = () => {
+  return {
+    accuracy: 92 + (Math.random() * 5),
+    processedItems: 1240 + Math.floor(Math.random() * 300),
+    lastTraining: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+    categories: {
+      'Rent': 94 + (Math.random() * 4),
+      'Payroll': 96 + (Math.random() * 3),
+      'Marketing': 88 + (Math.random() * 6),
+      'Supplies': 90 + (Math.random() * 5),
+      'Utilities': 95 + (Math.random() * 3),
+      'Travel': 93 + (Math.random() * 4),
+      'Software': 91 + (Math.random() * 5),
+      'Equipment': 89 + (Math.random() * 6),
+      'Insurance': 94 + (Math.random() * 4),
+      'Uncategorized': 0
+    },
+    suggestionsAccepted: 78 + (Math.random() * 10)
+  };
+};
+
+// Generate simulated vendor analysis
+export const generateVendorAnalysis = (expenses: Expense[]) => {
+  // Group expenses by vendor
+  const vendorTotals: Record<string, number> = {};
+  const vendorFrequency: Record<string, number> = {};
+  
+  expenses.forEach(expense => {
+    if (!vendorTotals[expense.vendor]) {
+      vendorTotals[expense.vendor] = 0;
+      vendorFrequency[expense.vendor] = 0;
+    }
+    vendorTotals[expense.vendor] += expense.amount;
+    vendorFrequency[expense.vendor]++;
+  });
+  
+  // Sort vendors by total amount spent
+  const topVendors = Object.entries(vendorTotals)
+    .map(([vendor, amount]) => ({
+      vendor,
+      amount,
+      frequency: vendorFrequency[vendor],
+      averageTransaction: amount / vendorFrequency[vendor]
+    }))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);
+  
+  return {
+    topVendors,
+    vendorCount: Object.keys(vendorTotals).length,
+    totalSpend: Object.values(vendorTotals).reduce((sum, amount) => sum + amount, 0),
+    averageVendorSpend: Object.values(vendorTotals).reduce((sum, amount) => sum + amount, 0) / Object.keys(vendorTotals).length
+  };
+};
