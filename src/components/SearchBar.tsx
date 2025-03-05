@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -13,15 +12,10 @@ interface SearchBarProps {
 
 const SearchBar = ({ onSearch, placeholder = "Search expenses, reports, or categories...", className = "" }: SearchBarProps) => {
   const [query, setQuery] = useState("");
-  const { toast } = useToast();
 
   const handleSearch = () => {
     if (query.trim()) {
       onSearch(query.trim());
-      toast({
-        title: "Search initiated",
-        description: `Searching for "${query}"`,
-      });
     }
   };
 

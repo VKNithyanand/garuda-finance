@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { MoonIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -10,7 +10,13 @@ import { toast } from "sonner";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
+
+  // Fix dark mode by ensuring component is mounted before rendering theme-dependent elements
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSearch = (query: string) => {
     if (!query) {
@@ -34,13 +40,22 @@ const Header = () => {
       
       setSearchResults(mockResults);
       
-      // Using toast from sonner correctly - it accepts a string as first parameter
+      // Using toast from sonner correctly
       toast(
         mockResults.length ? 
           `Found ${mockResults.length} results for "${query}"` : 
           `No results found for "${query}"`
       );
     }, 500);
+  };
+
+  const toggleTheme = () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    console.log("Changing theme from", theme, "to", newTheme);
+    setTheme(newTheme);
+    toast(`Theme changed to ${newTheme} mode`, {
+      icon: newTheme === "dark" ? "🌙" : "☀️"
+    });
   };
 
   return (
@@ -52,26 +67,21 @@ const Header = () => {
             <SearchBar onSearch={handleSearch} />
           </div>
           <NotificationsPanel />
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Toggle Theme"
-            className="mr-2"
-            onClick={() => {
-              console.log("Changing theme from", theme, "to", theme === "dark" ? "light" : "dark");
-              const newTheme = theme === "dark" ? "light" : "dark";
-              setTheme(newTheme);
-              toast(`Theme changed to ${newTheme} mode`, {
-                icon: newTheme === "dark" ? "🌙" : "☀️"
-              });
-            }}
-          >
-            {theme === "dark" ? (
-              <SunIcon className="h-5 w-5" />
-            ) : (
-              <MoonIcon className="h-5 w-5" />
-            )}
-          </Button>
+          {mounted && (
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Toggle Theme"
+              className="mr-2"
+              onClick={toggleTheme}
+            >
+              {theme === "dark" ? (
+                <SunIcon className="h-5 w-5" />
+              ) : (
+                <MoonIcon className="h-5 w-5" />
+              )}
+            </Button>
+          )}
           <ProfileSection />
         </div>
       </div>
