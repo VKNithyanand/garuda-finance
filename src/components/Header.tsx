@@ -34,11 +34,12 @@ const Header = () => {
       
       setSearchResults(mockResults);
       
-      toast({
-        title: mockResults.length ? 
+      // Using toast from sonner correctly - it accepts a string as first parameter
+      toast(
+        mockResults.length ? 
           `Found ${mockResults.length} results for "${query}"` : 
           `No results found for "${query}"`
-      });
+      );
     }, 500);
   };
 
