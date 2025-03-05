@@ -58,7 +58,11 @@ const Header = () => {
             className="mr-2"
             onClick={() => {
               console.log("Changing theme from", theme, "to", theme === "dark" ? "light" : "dark");
-              setTheme(theme === "dark" ? "light" : "dark");
+              const newTheme = theme === "dark" ? "light" : "dark";
+              setTheme(newTheme);
+              toast(`Theme changed to ${newTheme} mode`, {
+                icon: newTheme === "dark" ? "🌙" : "☀️"
+              });
             }}
           >
             {theme === "dark" ? (

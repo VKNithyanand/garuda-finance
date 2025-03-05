@@ -1,4 +1,3 @@
-
 import { Expense, ExpenseCategory } from './mockData';
 import { toast } from 'sonner';
 
@@ -42,7 +41,7 @@ export const processExpenseWithAI = async (expense: Expense): Promise<Expense> =
   const description = expense.description.toLowerCase();
   const vendor = expense.vendor.toLowerCase();
   
-  if (expense.category === 'Uncategorized') {
+  if (expense.category === 'Uncategorized' as ExpenseCategory) {
     // Try to categorize uncategorized expenses
     if (description.includes('rent') || vendor.includes('property')) {
       updatedExpense.category = 'Rent';
