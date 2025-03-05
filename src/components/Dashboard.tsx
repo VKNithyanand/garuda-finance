@@ -10,6 +10,7 @@ import OptimizationCard from "./OptimizationCard";
 import FinancialReportCard from "./FinancialReportCard";
 import SecureStorageCard from "./SecureStorageCard";
 import NewExpenseDialog from "./NewExpenseDialog";
+import DatasetUploader from "./DatasetUploader";
 import { Expense } from "@/utils/mockData";
 import { 
   generateMockExpenses, 
@@ -28,16 +29,26 @@ import { saveToStorage } from "@/utils/storageUtils";
 
 const Dashboard = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [revenueData, setRevenueData] = useState<any[]>([]);
+  const [forecastData, setForecastData] = useState<any[]>([]);
   const [optimizationRecommendations, setOptimizationRecommendations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expenseTrends, setExpenseTrends] = useState<any>(null);
   const [anomalies, setAnomalies] = useState<any>(null);
+  const [dataSource, setDataSource] = useState<"mock" | "imported">("mock");
 
   useEffect(() => {
     // Simulate loading data from an API
     const timer = setTimeout(async () => {
       const mockExpenses = generateMockExpenses(50);
       setExpenses(mockExpenses);
+      
+      // Generate mock data for charts and forecasts
+      const mockRevenue = generateMockRevenue(12);
+      setRevenueData(mockRevenue);
+      
+      const mockForecast = generateMockForecast(6);
+      setForecastData(mockForecast);
       
       // Generate optimization recommendations
       const recommendations = analyzeExpensesForOptimizations(mockExpenses);
@@ -53,6 +64,8 @@ const Dashboard = () => {
       // Save initial data to storage
       try {
         await saveToStorage('expense-data', JSON.stringify(mockExpenses));
+        await saveToStorage('revenue-data', JSON.stringify(mockRevenue));
+        await saveToStorage('forecast-data', JSON.stringify(mockForecast));
         await saveToStorage('optimization-data', JSON.stringify(recommendations));
       } catch (error) {
         console.error("Failed to save initial data to storage:", error);
@@ -145,6 +158,32 @@ const Dashboard = () => {
     
     toast.success("Expense deleted successfully");
   };
+  
+  const handleExpensesUploaded = async (importedExpenses: Expense[]) => {
+    setExpenses(importedExpenses);
+    setDataSource("imported");
+    
+    // Update optimization recommendations
+    const newRecommendations = analyzeExpensesForOptimizations(importedExpenses);
+    setOptimizationRecommendations(newRecommendations);
+    
+    // Re-analyze trends and anomalies
+    const trends = await analyzeExpenseTrends(importedExpenses);
+    setExpenseTrends(trends);
+    
+    const anomalyData = await detectAnomalies(importedExpenses);
+    setAnomalies(anomalyData);
+  };
+  
+  const handleRevenueUploaded = (importedRevenue: any[]) => {
+    setRevenueData(importedRevenue);
+    setDataSource("imported");
+  };
+  
+  const handleForecastUploaded = (importedForecast: any[]) => {
+    setForecastData(importedForecast);
+    setDataSource("imported");
+  };
 
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const averageExpense = expenses.length ? Math.round(totalExpenses / expenses.length) : 0;
@@ -155,9 +194,6 @@ const Dashboard = () => {
   const avgExpenseTrend = expenseTrends ? 2.1 : 2.1; // Use actual value if available
   const savingsTrend = expenseTrends ? 8.4 : 8.4; // Use actual value if available
   
-  // Generate mock data for charts and forecasts
-  const revenueData = generateMockRevenue(12);
-  const forecastData = generateMockForecast(6);
   const categoryData = calculateCategoryBreakdown(expenses);
   const forecastInsights = generateInsights(revenueData);
 
@@ -175,7 +211,7 @@ const Dashboard = () => {
           <div className="flex items-center gap-4">
             <Badge className="bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1">
               <Zap className="h-3.5 w-3.5 mr-1" />
-              AI Powered
+              {dataSource === "imported" ? "Using Imported Data" : "Using Mock Data"}
             </Badge>
             <NewExpenseDialog onAddExpense={handleAddExpense} />
           </div>
@@ -208,6 +244,14 @@ const Dashboard = () => {
             trend={savingsTrend}
             trendLabel="vs. last month"
             icon={<TrendingDown className="h-5 w-5 text-muted-foreground" />}
+          />
+        </div>
+
+        <div className="mb-6">
+          <DatasetUploader 
+            onExpensesLoaded={handleExpensesUploaded}
+            onRevenueLoaded={handleRevenueUploaded}
+            onForecastLoaded={handleForecastUploaded}
           />
         </div>
 
