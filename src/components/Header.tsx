@@ -1,17 +1,19 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { MoonIcon, SunIcon } from "lucide-react";
+import { MoonIcon, SunIcon, PieChart, Settings as SettingsIcon, BarChart3 } from "lucide-react";
 import { useTheme } from "next-themes";
 import SearchBar from "@/components/SearchBar";
 import NotificationsPanel from "@/components/NotificationsPanel";
 import ProfileSection from "@/components/ProfileSection";
 import { toast } from "sonner";
+import { Link, useLocation } from "react-router-dom";
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const location = useLocation();
 
   // Fix dark mode by ensuring component is mounted before rendering theme-dependent elements
   useEffect(() => {
@@ -40,7 +42,6 @@ const Header = () => {
       
       setSearchResults(mockResults);
       
-      // Using toast from sonner correctly
       toast(
         mockResults.length ? 
           `Found ${mockResults.length} results for "${query}"` : 
@@ -61,7 +62,31 @@ const Header = () => {
   return (
     <header className="border-b">
       <div className="flex h-16 items-center px-4 sm:px-6 lg:px-8">
-        <div className="font-semibold text-lg">Financial Dashboard</div>
+        <Link to="/" className="font-semibold text-lg flex items-center">
+          <PieChart className="h-5 w-5 mr-2" />
+          <span>Financial Dashboard</span>
+        </Link>
+        
+        <div className="flex items-center mx-4 space-x-1">
+          <Link to="/">
+            <Button variant={location.pathname === '/' ? "secondary" : "ghost"} size="sm">
+              Dashboard
+            </Button>
+          </Link>
+          <Link to="/forecast">
+            <Button variant={location.pathname === '/forecast' ? "secondary" : "ghost"} size="sm">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              AI Forecast
+            </Button>
+          </Link>
+          <Link to="/settings">
+            <Button variant={location.pathname === '/settings' ? "secondary" : "ghost"} size="sm">
+              <SettingsIcon className="h-4 w-4 mr-2" />
+              Settings
+            </Button>
+          </Link>
+        </div>
+        
         <div className="flex flex-1 items-center justify-end space-x-4">
           <div className="w-full max-w-xl">
             <SearchBar onSearch={handleSearch} />
