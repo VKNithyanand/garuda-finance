@@ -1,62 +1,16 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { FileText, Download, PieChart, Printer, Share2, BarChart3, TrendingUp, Calendar, Loader2 } from "lucide-react";
+import { FileText, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { generateReport } from "@/utils/reportUtils";
 import { saveToStorage, getFromStorage } from "@/utils/storageUtils";
-
-type ReportType = "expense" | "budget" | "forecast" | "optimization";
-
-interface ReportOption {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ElementType;
-  type: ReportType;
-}
-
-interface GeneratedReport {
-  id: string;
-  title: string;
-  date: string;
-  type: ReportType;
-  data: any;
-  charts: string[];
-}
-
-const reportOptions: ReportOption[] = [
-  {
-    id: "expense-report",
-    title: "Expense Analysis",
-    description: "Detailed breakdown of your spending patterns",
-    icon: PieChart,
-    type: "expense"
-  },
-  {
-    id: "budget-report",
-    title: "Budget Compliance",
-    description: "How well you're staying within budget limits",
-    icon: BarChart3,
-    type: "budget"
-  },
-  {
-    id: "forecast-report",
-    title: "Financial Forecast",
-    description: "Projected financials for the next quarter",
-    icon: TrendingUp,
-    type: "forecast"
-  },
-  {
-    id: "optimization-report",
-    title: "Savings Opportunities",
-    description: "AI-generated cost optimization analysis",
-    icon: FileText,
-    type: "optimization"
-  }
-];
+import { GenerateReportDialog } from "./financial-report/GenerateReportDialog";
+import { ReportHistoryDialog } from "./financial-report/ReportHistoryDialog";
+import { ReportDisplay } from "./financial-report/ReportDisplay";
+import { NoReportPlaceholder } from "./financial-report/NoReportPlaceholder";
+import { ReportOption } from "./financial-report/ReportOptions";
+import { GeneratedReport } from "@/utils/reportDisplayUtils";
 
 const FinancialReportCard = () => {
   const [selectedReport, setSelectedReport] = useState<ReportOption | null>(null);
@@ -199,15 +153,6 @@ const FinancialReportCard = () => {
     setIsHistoryDialogOpen(false);
   };
 
-  // Format the date for display
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -220,107 +165,24 @@ const FinancialReportCard = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full mb-4" onClick={() => setIsGenerateDialogOpen(true)}>Generate a new report</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Generate Financial Report</DialogTitle>
-              <DialogDescription>
-                Choose the type of report you want to generate
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              {reportOptions.map((option) => (
-                <div 
-                  key={option.id}
-                  className={`flex items-start p-3 rounded-md cursor-pointer border transition-all ${
-                    selectedReport?.id === option.id ? 'border-primary bg-primary/5' : 'border-muted-foreground/20 hover:border-primary/50'
-                  }`}
-                  onClick={() => setSelectedReport(option)}
-                >
-                  <div className="mr-3 mt-0.5">
-                    <option.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium">{option.title}</h4>
-                    <p className="text-xs text-muted-foreground">{option.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <DialogFooter>
-              <Button 
-                type="submit" 
-                onClick={handleGenerateReport}
-                disabled={!selectedReport || isGenerating}
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : "Generate Report"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <GenerateReportDialog
+          isOpen={isGenerateDialogOpen}
+          setIsOpen={setIsGenerateDialogOpen}
+          selectedReport={selectedReport}
+          setSelectedReport={setSelectedReport}
+          isGenerating={isGenerating}
+          onGenerateReport={handleGenerateReport}
+        />
 
         {generatedReport ? (
-          <div className="border rounded-md p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-medium">{generatedReport.title} - {formatDate(generatedReport.date)}</h3>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handleDownload}>
-                  <Download className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleShare}>
-                  <Share2 className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="sm" onClick={handlePrint}>
-                  <Printer className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <div className="space-y-4">
-              {generatedReport.charts.includes('pie-chart') && (
-                <div className="h-32 bg-muted/40 rounded-md flex items-center justify-center">
-                  <PieChart className="h-16 w-16 text-muted-foreground/50" />
-                </div>
-              )}
-              {generatedReport.charts.includes('bar-chart') && (
-                <div className="h-20 bg-muted/40 rounded-md flex items-center justify-center">
-                  <BarChart3 className="h-10 w-10 text-muted-foreground/50" />
-                </div>
-              )}
-              {generatedReport.charts.includes('line-chart') && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="h-16 bg-muted/40 rounded-md"></div>
-                  <div className="h-16 bg-muted/40 rounded-md"></div>
-                </div>
-              )}
-              <div className="mt-4 pt-3 border-t">
-                <h4 className="text-sm font-medium mb-2">Key Findings</h4>
-                <ul className="space-y-1 text-sm text-muted-foreground">
-                  {generatedReport.data.insights.map((insight: string, i: number) => (
-                    <li key={i} className="flex items-start">
-                      <span className="mr-2">•</span>
-                      <span>{insight}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
+          <ReportDisplay
+            report={generatedReport}
+            onDownload={handleDownload}
+            onShare={handleShare}
+            onPrint={handlePrint}
+          />
         ) : (
-          <div className="border border-dashed rounded-md p-4 flex flex-col items-center justify-center h-[200px] text-center">
-            <FileText className="h-10 w-10 text-muted-foreground/50 mb-2" />
-            <p className="text-muted-foreground mb-1">No reports generated yet</p>
-            <p className="text-xs text-muted-foreground/80">
-              Generate a report to gain insights into your finances
-            </p>
-          </div>
+          <NoReportPlaceholder />
         )}
       </CardContent>
       <CardFooter className="flex justify-between text-xs text-muted-foreground items-center">
@@ -328,50 +190,12 @@ const FinancialReportCard = () => {
           <Calendar className="h-3 w-3" />
           Last updated: {new Date().toLocaleDateString()}
         </div>
-        <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => setIsHistoryDialogOpen(true)}>
-              View report history
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Report History</DialogTitle>
-              <DialogDescription>
-                View or reopen your previously generated reports
-              </DialogDescription>
-            </DialogHeader>
-            <div className="max-h-[400px] overflow-y-auto">
-              {reportHistory.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No report history found
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {reportHistory.map((report) => (
-                    <div 
-                      key={report.id} 
-                      className="flex items-center justify-between p-3 border rounded-md hover:bg-muted/30 cursor-pointer"
-                      onClick={() => handleViewReport(report)}
-                    >
-                      <div className="flex items-center">
-                        {report.type === 'expense' && <PieChart className="h-4 w-4 mr-2 text-primary" />}
-                        {report.type === 'budget' && <BarChart3 className="h-4 w-4 mr-2 text-primary" />}
-                        {report.type === 'forecast' && <TrendingUp className="h-4 w-4 mr-2 text-primary" />}
-                        {report.type === 'optimization' && <FileText className="h-4 w-4 mr-2 text-primary" />}
-                        <div>
-                          <p className="text-sm font-medium">{report.title}</p>
-                          <p className="text-xs text-muted-foreground">{formatDate(report.date)}</p>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="sm">View</Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
+        <ReportHistoryDialog
+          isOpen={isHistoryDialogOpen}
+          setIsOpen={setIsHistoryDialogOpen}
+          reportHistory={reportHistory}
+          onViewReport={handleViewReport}
+        />
       </CardFooter>
     </Card>
   );
