@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { 
   UserRound, Settings, LogOut, CreditCard, KeyRound, HelpCircle, 
   BellRing, Trophy, BadgeCheck, Star, Wand2, Shield, Heart, Bookmark,
-  Calendar, LineChart
+  Calendar, LineChart, Sun, Moon, PieChartIcon, BarChart
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -280,7 +279,7 @@ const ProfileSection = () => {
                       className={`flex-col h-auto py-3 px-2 ${profile.theme.mode === 'light' ? 'border-[#9b87f5] bg-[#E5DEFF]' : ''}`}
                       onClick={() => setProfile({...profile, theme: {...profile.theme, mode: 'light'}})}
                     >
-                      <SunIcon className="h-5 w-5 mb-1" />
+                      <Sun className="h-5 w-5 mb-1" />
                       <span>Light</span>
                     </Button>
                     <Button 
@@ -289,7 +288,7 @@ const ProfileSection = () => {
                       className={`flex-col h-auto py-3 px-2 ${profile.theme.mode === 'dark' ? 'border-[#9b87f5] bg-[#E5DEFF]' : ''}`}
                       onClick={() => setProfile({...profile, theme: {...profile.theme, mode: 'dark'}})}
                     >
-                      <MoonIcon className="h-5 w-5 mb-1" />
+                      <Moon className="h-5 w-5 mb-1" />
                       <span>Dark</span>
                     </Button>
                     <Button 
@@ -331,11 +330,11 @@ const ProfileSection = () => {
                   <h4 className="font-medium mb-3">Dashboard Layout</h4>
                   <div className="grid grid-cols-2 gap-2">
                     <Button variant="outline" size="sm" className="justify-start">
-                      <PieChart className="h-4 w-4 mr-2" />
+                      <PieChartIcon className="h-4 w-4 mr-2" />
                       Compact
                     </Button>
                     <Button variant="outline" size="sm" className="justify-start">
-                      <BarChart3 className="h-4 w-4 mr-2" />
+                      <BarChart className="h-4 w-4 mr-2" />
                       Expanded
                     </Button>
                   </div>
