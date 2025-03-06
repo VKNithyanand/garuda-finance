@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Coins, TrendingDown, CheckCircle2, ArrowRight, Sparkles, BarChart3, BadgeDollarSign } from "lucide-react";
+import { Coins, TrendingDown, CheckCircle2, ArrowRight, Sparkles, BarChart3, BadgeDollarSign, Download } from "lucide-react";
 import { OptimizationRecommendation, calculatePotentialSavings } from "@/utils/optimizationUtils";
 import { useEffect, useState } from "react";
 import { 
@@ -80,13 +80,46 @@ const OptimizationCard = ({ recommendations, className }: OptimizationCardProps)
         description: `Report includes ${implementedItems.length} implemented optimizations with ${formatCurrency(savings)} in savings.`,
         action: {
           label: "Download",
-          onClick: () => {
-            console.log("Downloading optimization report");
-            toast.success("Report downloaded successfully");
-          },
+          onClick: () => handleDownloadReport(),
         },
       });
     }, 2000);
+  };
+  
+  const handleDownloadReport = () => {
+    // Create the report data
+    const reportData = {
+      title: "Cost Optimization Report",
+      date: new Date().toISOString(),
+      totalPotentialSavings: formatCurrency(totalPotentialSavings),
+      implementedSavings: formatCurrency(savings),
+      implementedCount: implementedItems.length,
+      totalRecommendations: recommendations.length,
+      implementedItems: recommendations.filter(rec => implementedItems.includes(rec.id)),
+      pendingItems: recommendations.filter(rec => !implementedItems.includes(rec.id)),
+    };
+    
+    // Convert report to blob for download
+    const reportBlob = new Blob(
+      [JSON.stringify(reportData, null, 2)], 
+      { type: 'application/json' }
+    );
+    
+    // Create download link
+    const url = URL.createObjectURL(reportBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cost-optimization-report-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    
+    // Clean up
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast.success("Report downloaded", {
+      description: "Your optimization report has been saved to your downloads folder."
+    });
   };
   
   return (
@@ -201,18 +234,30 @@ const OptimizationCard = ({ recommendations, className }: OptimizationCardProps)
               <BarChart3 className="h-4 w-4" />
               <span>{implementedItems.length} of {visibleRecommendations.length} optimizations implemented</span>
             </div>
-            <Button 
-              variant="outline" 
-              className="flex items-center gap-2"
-              onClick={handleGenerateReport}
-              disabled={isGeneratingReport}
-            >
-              {isGeneratingReport ? (
-                <>Generating... <Sparkles className="h-4 w-4 animate-pulse" /></>
-              ) : (
-                <>Generate Optimization Report <ArrowRight className="h-4 w-4" /></>
+            <div className="flex items-center gap-2">
+              {implementedItems.length > 0 && (
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={handleDownloadReport}
+                >
+                  <Download className="h-4 w-4" />
+                  Download Report
+                </Button>
               )}
-            </Button>
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2"
+                onClick={handleGenerateReport}
+                disabled={isGeneratingReport}
+              >
+                {isGeneratingReport ? (
+                  <>Generating... <Sparkles className="h-4 w-4 animate-pulse" /></>
+                ) : (
+                  <>Generate Optimization Report <ArrowRight className="h-4 w-4" /></>
+                )}
+              </Button>
+            </div>
           </div>
         )}
       </CardContent>
