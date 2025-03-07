@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Calendar } from "lucide-react";
+import { FileText, Calendar, Database } from "lucide-react";
 import { toast } from "sonner";
 import { generateReport } from "@/utils/reportUtils";
 import { saveToStorage, getFromStorage } from "@/utils/storageUtils";
@@ -19,6 +19,7 @@ const FinancialReportCard = () => {
   const [reportHistory, setReportHistory] = useState<GeneratedReport[]>([]);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
+  const [dataSource, setDataSource] = useState<"mock" | "imported">("mock");
 
   // Load previously generated reports from storage
   useEffect(() => {
@@ -27,6 +28,12 @@ const FinancialReportCard = () => {
         const savedReports = await getFromStorage('report-history');
         if (savedReports) {
           setReportHistory(JSON.parse(savedReports));
+        }
+        
+        // Check if we have expense data to determine source
+        const expenseData = await getFromStorage('expense-data');
+        if (expenseData) {
+          setDataSource("imported");
         }
       } catch (error) {
         console.error("Failed to load saved reports:", error);
@@ -53,6 +60,7 @@ const FinancialReportCard = () => {
         title: selectedReport.title,
         date: new Date().toISOString(),
         type: selectedReport.type,
+        source: dataSource,
         data: reportData,
         charts: ["pie-chart", "bar-chart", "line-chart"].slice(0, 2 + Math.floor(Math.random() * 2))
       };
@@ -66,7 +74,7 @@ const FinancialReportCard = () => {
       await saveToStorage('report-history', JSON.stringify(updatedHistory));
       
       toast.success("Report ready!", {
-        description: `Your ${selectedReport.title} has been generated successfully.`
+        description: `Your ${selectedReport.title} has been generated ${dataSource === "imported" ? "using imported data" : "successfully"}.`
       });
       
       // Close the dialog
@@ -154,15 +162,25 @@ const FinancialReportCard = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          Automated Financial Reports
-        </CardTitle>
-        <CardDescription>
-          Generate AI-powered reports for insights and decision-making
-        </CardDescription>
+    <Card className="border border-primary/10 shadow-md">
+      <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5">
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <div className="bg-primary/10 p-2 rounded-full">
+                <FileText className="h-4 w-4 text-primary" />
+              </div>
+              <span>AI Financial Reports</span>
+            </CardTitle>
+            <CardDescription>
+              Generate AI-powered reports using {dataSource === "imported" ? "your imported data" : "financial data"}
+            </CardDescription>
+          </div>
+          <div className="bg-secondary/30 px-3 py-1.5 rounded-full text-xs font-medium text-secondary-foreground flex items-center">
+            <Database className="h-3.5 w-3.5 mr-1" />
+            {dataSource === "imported" ? "Using Imported Data" : "Using Mock Data"}
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <GenerateReportDialog

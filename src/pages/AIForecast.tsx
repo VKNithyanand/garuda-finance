@@ -6,9 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { CircleDashed, TrendingUp, Calendar, Download } from "lucide-react";
+import { CircleDashed, TrendingUp, Calendar, Download, Database, ArrowUpDown, BrainCircuit } from "lucide-react";
 import { generateMockForecast, ForecastData, generateInsightsFromForecast } from "@/utils/mockData";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { getFromStorage } from "@/utils/storageUtils";
+import DatasetUploader from "@/components/DatasetUploader";
 
 const AIForecast = () => {
   const [forecastPeriod, setForecastPeriod] = useState("6months");
@@ -16,10 +18,28 @@ const AIForecast = () => {
   const [forecastData, setForecastData] = useState<ForecastData[]>([]);
   const [insights, setInsights] = useState<string[]>([]);
   const [model, setModel] = useState("arima");
+  const [dataSource, setDataSource] = useState<"mock" | "imported">("mock");
 
   useEffect(() => {
-    generateForecast();
+    loadSavedForecastData();
   }, []);
+
+  const loadSavedForecastData = async () => {
+    try {
+      const savedData = await getFromStorage('forecast-data');
+      if (savedData) {
+        const parsedData = JSON.parse(savedData);
+        setForecastData(parsedData);
+        setInsights(generateInsightsFromForecast(parsedData));
+        setDataSource("imported");
+      } else {
+        generateForecast();
+      }
+    } catch (error) {
+      console.error("Error loading saved forecast data:", error);
+      generateForecast();
+    }
+  };
 
   const generateForecast = async () => {
     setIsLoading(true);
@@ -44,6 +64,7 @@ const AIForecast = () => {
     setInsights(newInsights);
     
     setIsLoading(false);
+    setDataSource("mock");
     
     toast.success("Forecast successfully generated", {
       description: `Using ${model.toUpperCase()} model for ${months} months prediction`
@@ -56,6 +77,15 @@ const AIForecast = () => {
 
   const handleModelChange = (value: string) => {
     setModel(value);
+  };
+
+  const handleForecastLoaded = (importedForecast: ForecastData[]) => {
+    setForecastData(importedForecast);
+    setInsights(generateInsightsFromForecast(importedForecast));
+    setDataSource("imported");
+    toast.success("Using imported forecast data", {
+      description: "AI predictions will now be based on your uploaded data"
+    });
   };
 
   // Format for the chart tooltip
@@ -92,24 +122,43 @@ const AIForecast = () => {
       <main className="container py-6">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">AI Revenue Forecasting</h1>
+            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-indigo-500 text-transparent bg-clip-text">
+              AI Revenue Forecasting
+            </h1>
             <p className="text-muted-foreground">
               Advanced AI-powered revenue predictions for business planning
             </p>
           </div>
+          <div className="flex items-center gap-2">
+            <div className="bg-secondary/30 px-3 py-1.5 rounded-full text-xs font-medium text-secondary-foreground flex items-center">
+              <Database className="h-3.5 w-3.5 mr-1" />
+              {dataSource === "imported" ? "Using Imported Data" : "Using Mock Data"}
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <DatasetUploader 
+            onExpensesLoaded={() => {}}
+            onRevenueLoaded={() => {}}
+            onForecastLoaded={handleForecastLoaded}
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-medium">Forecast Settings</CardTitle>
+          <Card className="border border-primary/10 shadow-md">
+            <CardHeader className="pb-2 bg-gradient-to-r from-primary/5 to-secondary/5">
+              <CardTitle className="text-lg font-medium flex items-center gap-2">
+                <BrainCircuit className="h-5 w-5 text-primary" />
+                Forecast Settings
+              </CardTitle>
               <CardDescription>Configure your forecast parameters</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Time Period</label>
                 <Select value={forecastPeriod} onValueChange={handlePeriodChange}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-primary/20">
                     <SelectValue placeholder="Select period" />
                   </SelectTrigger>
                   <SelectContent>
@@ -124,7 +173,7 @@ const AIForecast = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Model Type</label>
                 <Select value={model} onValueChange={handleModelChange}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-primary/20">
                     <SelectValue placeholder="Select model" />
                   </SelectTrigger>
                   <SelectContent>
@@ -137,9 +186,9 @@ const AIForecast = () => {
               </div>
               
               <Button
-                className="w-full mt-4"
+                className="w-full mt-4 bg-gradient-to-r from-primary to-indigo-500 hover:opacity-90 transition-opacity"
                 onClick={generateForecast}
-                disabled={isLoading}
+                disabled={isLoading || dataSource === "imported"}
               >
                 {isLoading ? (
                   <>
@@ -153,17 +202,23 @@ const AIForecast = () => {
                   </>
                 )}
               </Button>
+              
+              {dataSource === "imported" && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Using imported data. To use AI-generated forecast, upload a new dataset.
+                </p>
+              )}
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-3">
-            <CardHeader className="pb-2">
+          <Card className="lg:col-span-3 border border-primary/10 shadow-md">
+            <CardHeader className="pb-2 bg-gradient-to-r from-primary/5 to-secondary/5">
               <div className="flex justify-between items-center">
                 <div>
                   <CardTitle className="text-lg font-medium">Revenue Forecast</CardTitle>
                   <CardDescription>AI-generated projection using {model.toUpperCase()} model</CardDescription>
                 </div>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5">
                   <Download className="h-4 w-4 mr-2" />
                   Export
                 </Button>
@@ -237,17 +292,20 @@ const AIForecast = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-medium">AI Insights</CardTitle>
+          <Card className="border border-primary/10 shadow-md">
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5">
+              <CardTitle className="text-lg font-medium flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                AI Insights
+              </CardTitle>
               <CardDescription>Automated analysis of your financial forecast</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <ul className="space-y-3">
                 {insights.map((insight, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <div className="h-6 w-6 flex items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <TrendingUp className="h-3.5 w-3.5" />
+                  <li key={index} className="flex items-start gap-2 p-2 rounded-md bg-secondary/10 hover:bg-secondary/20 transition-colors">
+                    <div className="h-6 w-6 flex items-center justify-center rounded-full bg-primary/10 text-primary shrink-0 mt-0.5">
+                      <ArrowUpDown className="h-3.5 w-3.5" />
                     </div>
                     <span className="text-sm">{insight}</span>
                   </li>
@@ -256,29 +314,47 @@ const AIForecast = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-medium">Forecast Parameters</CardTitle>
+          <Card className="border border-primary/10 shadow-md">
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5">
+              <CardTitle className="text-lg font-medium flex items-center gap-2">
+                <BrainCircuit className="h-5 w-5 text-primary" />
+                Forecast Parameters
+              </CardTitle>
               <CardDescription>Details about the forecasting model</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               <Tabs defaultValue="model">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="model">Model Info</TabsTrigger>
-                  <TabsTrigger value="data">Data Sources</TabsTrigger>
-                  <TabsTrigger value="training">Training</TabsTrigger>
+                <TabsList className="mb-4 bg-secondary/20">
+                  <TabsTrigger 
+                    value="model" 
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    Model Info
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="data" 
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    Data Sources
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="training" 
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    Training
+                  </TabsTrigger>
                 </TabsList>
                 <TabsContent value="model" className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
+                    <div className="space-y-1 bg-secondary/10 p-3 rounded-md">
                       <p className="text-xs text-muted-foreground">Model Type</p>
                       <p className="text-sm font-medium">{model.toUpperCase()}</p>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 bg-secondary/10 p-3 rounded-md">
                       <p className="text-xs text-muted-foreground">Confidence Level</p>
                       <p className="text-sm font-medium">85%</p>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 bg-secondary/10 p-3 rounded-md">
                       <p className="text-xs text-muted-foreground">Forecast Period</p>
                       <p className="text-sm font-medium">
                         {forecastPeriod === "3months" ? "3 Months" : 
@@ -286,7 +362,7 @@ const AIForecast = () => {
                          forecastPeriod === "12months" ? "12 Months" : "24 Months"}
                       </p>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 bg-secondary/10 p-3 rounded-md">
                       <p className="text-xs text-muted-foreground">Last Updated</p>
                       <p className="text-sm font-medium">{new Date().toLocaleDateString()}</p>
                     </div>
@@ -295,18 +371,18 @@ const AIForecast = () => {
                 <TabsContent value="data">
                   <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      This forecast is based on historical transaction data from the following sources:
+                      This forecast is based on {dataSource === "imported" ? "imported data" : "historical transaction data"} from the following sources:
                     </p>
                     <ul className="space-y-2">
-                      <li className="text-sm flex items-center gap-2">
+                      <li className="text-sm flex items-center gap-2 p-2 rounded-md bg-secondary/10">
                         <Calendar className="h-4 w-4 text-primary" />
                         <span>Historical expense records (last 12 months)</span>
                       </li>
-                      <li className="text-sm flex items-center gap-2">
+                      <li className="text-sm flex items-center gap-2 p-2 rounded-md bg-secondary/10">
                         <Calendar className="h-4 w-4 text-primary" />
                         <span>Revenue transactions (last 12 months)</span>
                       </li>
-                      <li className="text-sm flex items-center gap-2">
+                      <li className="text-sm flex items-center gap-2 p-2 rounded-md bg-secondary/10">
                         <Calendar className="h-4 w-4 text-primary" />
                         <span>Recurring subscription data</span>
                       </li>
@@ -319,19 +395,19 @@ const AIForecast = () => {
                       The AI model is trained using the following parameters:
                     </p>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
+                      <div className="space-y-1 bg-secondary/10 p-3 rounded-md">
                         <p className="text-xs text-muted-foreground">Training Epochs</p>
                         <p className="text-sm font-medium">1000</p>
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-1 bg-secondary/10 p-3 rounded-md">
                         <p className="text-xs text-muted-foreground">Learning Rate</p>
                         <p className="text-sm font-medium">0.001</p>
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-1 bg-secondary/10 p-3 rounded-md">
                         <p className="text-xs text-muted-foreground">Validation Split</p>
                         <p className="text-sm font-medium">20%</p>
                       </div>
-                      <div className="space-y-1">
+                      <div className="space-y-1 bg-secondary/10 p-3 rounded-md">
                         <p className="text-xs text-muted-foreground">Optimization</p>
                         <p className="text-sm font-medium">Adam</p>
                       </div>

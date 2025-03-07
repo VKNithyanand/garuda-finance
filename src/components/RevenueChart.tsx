@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Revenue } from "@/utils/mockData";
 import { useEffect, useState } from "react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Info } from "lucide-react";
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface RevenueChartProps {
   data: Revenue[];
@@ -45,11 +47,47 @@ const RevenueChart = ({ data, className }: RevenueChartProps) => {
     return null;
   };
 
+  // Calculate monthly growth percentage
+  const calculateGrowth = () => {
+    if (data.length < 2) return "N/A";
+    
+    const lastMonth = data[data.length - 1].amount;
+    const previousMonth = data[data.length - 2].amount;
+    const growthPercent = ((lastMonth - previousMonth) / previousMonth) * 100;
+    
+    return growthPercent.toFixed(1) + "%";
+  };
+
   return (
-    <Card className={className}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium">Revenue Overview</CardTitle>
-        <CardDescription>Monthly revenue for the past year</CardDescription>
+    <Card className={`${className} border border-primary/10 shadow-md overflow-hidden`}>
+      <CardHeader className="pb-2 bg-gradient-to-r from-primary/5 to-secondary/5">
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-lg font-medium">Revenue Overview</CardTitle>
+            <CardDescription>Monthly revenue for the past year</CardDescription>
+          </div>
+          <TooltipProvider>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <div className="p-1.5 rounded-full bg-background/50 hover:bg-background/80 cursor-help">
+                  <Info className="h-4 w-4 text-primary" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="space-y-2 max-w-xs">
+                  <p className="text-sm font-medium">Revenue Insights</p>
+                  <p className="text-xs text-muted-foreground">
+                    This chart shows monthly revenue data. The trend indicates overall business performance.
+                  </p>
+                  <div className="flex justify-between text-xs border-t pt-2 mt-2">
+                    <span className="text-muted-foreground">Monthly growth:</span>
+                    <span className="font-medium text-primary">{calculateGrowth()}</span>
+                  </div>
+                </div>
+              </TooltipContent>
+            </UITooltip>
+          </TooltipProvider>
+        </div>
       </CardHeader>
       <CardContent className="p-1">
         <div className="h-[300px] w-full">
