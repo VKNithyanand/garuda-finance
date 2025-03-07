@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { MoonIcon, SunIcon, PieChart, Settings as SettingsIcon, BarChart3 } from "lucide-react";
 import { useTheme } from "next-themes";
 import NotificationsPanel from "@/components/NotificationsPanel";
-import ProfileSection from "@/components/ProfileSection";
 import { toast } from "sonner";
 import { Link, useLocation } from "react-router-dom";
 
@@ -72,7 +71,6 @@ const Header = () => {
               )}
             </Button>
           )}
-          <ProfileSection />
         </div>
       </div>
     </header>
