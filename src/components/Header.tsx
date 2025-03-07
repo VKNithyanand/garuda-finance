@@ -1,33 +1,16 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { MoonIcon, SunIcon, PieChart, Settings as SettingsIcon, BarChart3 } from "lucide-react";
-import { useTheme } from "next-themes";
+import { PieChart, BarChart3, Settings as SettingsIcon } from "lucide-react";
 import NotificationsPanel from "@/components/NotificationsPanel";
-import { toast } from "sonner";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Link, useLocation } from "react-router-dom";
 
 const Header = () => {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const location = useLocation();
 
-  // Fix dark mode by ensuring component is mounted before rendering theme-dependent elements
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    console.log("Changing theme from", theme, "to", newTheme);
-    setTheme(newTheme);
-    toast(`Theme changed to ${newTheme} mode`, {
-      icon: newTheme === "dark" ? "🌙" : "☀️"
-    });
-  };
-
   return (
-    <header className="border-b">
+    <header className="border-b sticky top-0 z-10 bg-background/95 backdrop-blur-sm">
       <div className="flex h-16 items-center px-4 sm:px-6 lg:px-8">
         <Link to="/" className="font-semibold text-lg flex items-center">
           <PieChart className="h-5 w-5 mr-2" />
@@ -56,21 +39,7 @@ const Header = () => {
         
         <div className="flex flex-1 items-center justify-end space-x-4">
           <NotificationsPanel />
-          {mounted && (
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Toggle Theme"
-              className="mr-2"
-              onClick={toggleTheme}
-            >
-              {theme === "dark" ? (
-                <SunIcon className="h-5 w-5" />
-              ) : (
-                <MoonIcon className="h-5 w-5" />
-              )}
-            </Button>
-          )}
+          <ThemeToggle />
         </div>
       </div>
     </header>
