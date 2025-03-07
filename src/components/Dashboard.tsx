@@ -38,43 +38,91 @@ const Dashboard = () => {
   const [dataSource, setDataSource] = useState<"mock" | "imported">("mock");
 
   useEffect(() => {
-    // Simulate loading data from an API
-    const timer = setTimeout(async () => {
-      const mockExpenses = generateMockExpenses(50);
-      setExpenses(mockExpenses);
-      
-      // Generate mock data for charts and forecasts
-      const mockRevenue = generateMockRevenue(12);
-      setRevenueData(mockRevenue);
-      
-      const mockForecast = generateMockForecast(6);
-      setForecastData(mockForecast);
-      
-      // Generate optimization recommendations
-      const recommendations = analyzeExpensesForOptimizations(mockExpenses);
-      setOptimizationRecommendations(recommendations);
-      
-      // Analyze expense trends and anomalies
-      const trends = await analyzeExpenseTrends(mockExpenses);
-      setExpenseTrends(trends);
-      
-      const anomalyData = await detectAnomalies(mockExpenses);
-      setAnomalies(anomalyData);
-      
-      // Save initial data to storage
+    // Try to load data from storage first
+    const loadFromStorage = async () => {
       try {
-        await saveToStorage('expense-data', JSON.stringify(mockExpenses));
-        await saveToStorage('revenue-data', JSON.stringify(mockRevenue));
-        await saveToStorage('forecast-data', JSON.stringify(mockForecast));
-        await saveToStorage('optimization-data', JSON.stringify(recommendations));
+        const storedExpenses = localStorage.getItem('expense-data');
+        const storedRevenue = localStorage.getItem('revenue-data');
+        const storedForecast = localStorage.getItem('forecast-data');
+        
+        if (storedExpenses && storedRevenue && storedForecast) {
+          const parsedExpenses = JSON.parse(storedExpenses);
+          const parsedRevenue = JSON.parse(storedRevenue);
+          const parsedForecast = JSON.parse(storedForecast);
+          
+          setExpenses(parsedExpenses);
+          setRevenueData(parsedRevenue);
+          setForecastData(parsedForecast);
+          
+          // Generate optimization recommendations
+          const recommendations = analyzeExpensesForOptimizations(parsedExpenses);
+          setOptimizationRecommendations(recommendations);
+          
+          // Analyze expense trends and anomalies
+          const trends = await analyzeExpenseTrends(parsedExpenses);
+          setExpenseTrends(trends);
+          
+          const anomalyData = await detectAnomalies(parsedExpenses);
+          setAnomalies(anomalyData);
+          
+          setDataSource("imported");
+          setIsLoading(false);
+          return true; // Data loaded from storage
+        }
+        return false; // No data in storage
       } catch (error) {
-        console.error("Failed to save initial data to storage:", error);
+        console.error("Failed to load data from storage:", error);
+        return false;
       }
-      
-      setIsLoading(false);
-    }, 1500);
+    };
+    
+    // Generate mock data if no stored data is available
+    const generateInitialData = async () => {
+      // Simulate loading data from an API
+      const timer = setTimeout(async () => {
+        const mockExpenses = generateMockExpenses(50);
+        setExpenses(mockExpenses);
+        
+        // Generate mock data for charts and forecasts
+        const mockRevenue = generateMockRevenue(12);
+        setRevenueData(mockRevenue);
+        
+        const mockForecast = generateMockForecast(6);
+        setForecastData(mockForecast);
+        
+        // Generate optimization recommendations
+        const recommendations = analyzeExpensesForOptimizations(mockExpenses);
+        setOptimizationRecommendations(recommendations);
+        
+        // Analyze expense trends and anomalies
+        const trends = await analyzeExpenseTrends(mockExpenses);
+        setExpenseTrends(trends);
+        
+        const anomalyData = await detectAnomalies(mockExpenses);
+        setAnomalies(anomalyData);
+        
+        // Save initial data to storage
+        try {
+          await saveToStorage('expense-data', JSON.stringify(mockExpenses));
+          await saveToStorage('revenue-data', JSON.stringify(mockRevenue));
+          await saveToStorage('forecast-data', JSON.stringify(mockForecast));
+          await saveToStorage('optimization-data', JSON.stringify(recommendations));
+        } catch (error) {
+          console.error("Failed to save initial data to storage:", error);
+        }
+        
+        setIsLoading(false);
+      }, 1500);
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    };
+    
+    // First try to load from storage, if that fails, generate mock data
+    loadFromStorage().then(loaded => {
+      if (!loaded) {
+        generateInitialData();
+      }
+    });
   }, []);
 
   const handleAddExpense = async (expense: Expense) => {
@@ -252,6 +300,7 @@ const Dashboard = () => {
             onExpensesLoaded={handleExpensesUploaded}
             onRevenueLoaded={handleRevenueUploaded}
             onForecastLoaded={handleForecastUploaded}
+            setDataSource={setDataSource}
           />
         </div>
 

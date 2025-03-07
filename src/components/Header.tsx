@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { PieChart, BarChart3, Settings as SettingsIcon } from "lucide-react";
 import NotificationsPanel from "@/components/NotificationsPanel";
