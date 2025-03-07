@@ -13,14 +13,12 @@ interface DatasetUploaderProps {
   onExpensesLoaded: (expenses: any[]) => void;
   onRevenueLoaded: (revenue: any[]) => void;
   onForecastLoaded: (forecast: any[]) => void;
-  setDataSource: (source: "mock" | "imported") => void;
 }
 
 const DatasetUploader = ({
   onExpensesLoaded,
   onRevenueLoaded,
-  onForecastLoaded,
-  setDataSource
+  onForecastLoaded
 }: DatasetUploaderProps) => {
   const [activeTab, setActiveTab] = useState("expenses");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -43,7 +41,6 @@ const DatasetUploader = ({
           if (isValid) {
             onExpensesLoaded(parsedData);
             await saveToStorage('expense-data', JSON.stringify(parsedData));
-            setDataSource("imported");
             toast.success(`Loaded ${parsedData.length} expenses from CSV`);
           }
           break;
@@ -53,7 +50,6 @@ const DatasetUploader = ({
           if (isValid) {
             onRevenueLoaded(parsedData);
             await saveToStorage('revenue-data', JSON.stringify(parsedData));
-            setDataSource("imported");
             toast.success(`Loaded ${parsedData.length} revenue entries from CSV`);
           }
           break;
@@ -63,7 +59,6 @@ const DatasetUploader = ({
           if (isValid) {
             onForecastLoaded(parsedData);
             await saveToStorage('forecast-data', JSON.stringify(parsedData));
-            setDataSource("imported");
             toast.success(`Loaded ${parsedData.length} forecast entries from CSV`);
           }
           break;

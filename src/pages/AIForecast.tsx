@@ -7,58 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { CircleDashed, TrendingUp, Calendar, Download } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { saveToStorage } from "@/utils/storageUtils";
-import DatasetUploader from "@/components/DatasetUploader";
 import { generateMockForecast, ForecastData, generateInsightsFromForecast } from "@/utils/mockData";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 const AIForecast = () => {
   const [forecastPeriod, setForecastPeriod] = useState("6months");
   const [isLoading, setIsLoading] = useState(false);
   const [forecastData, setForecastData] = useState<ForecastData[]>([]);
-  const [revenueData, setRevenueData] = useState<any[]>([]);
-  const [expenses, setExpenses] = useState<any[]>([]);
   const [insights, setInsights] = useState<string[]>([]);
   const [model, setModel] = useState("arima");
-  const [dataSource, setDataSource] = useState<"mock" | "imported">("mock");
 
   useEffect(() => {
-    // Load existing data from storage or generate mock data if none exists
-    const loadExistingData = async () => {
-      try {
-        // Try to load forecast data from storage
-        const storedForecastData = localStorage.getItem('forecast-data');
-        if (storedForecastData) {
-          const parsedData = JSON.parse(storedForecastData);
-          setForecastData(parsedData);
-          setDataSource("imported");
-          
-          // Generate insights based on the loaded forecast
-          const newInsights = generateInsightsFromForecast(parsedData);
-          setInsights(newInsights);
-        } else {
-          // If no stored data, generate mock forecast
-          generateForecast();
-        }
-
-        // Load revenue data for context
-        const storedRevenueData = localStorage.getItem('revenue-data');
-        if (storedRevenueData) {
-          setRevenueData(JSON.parse(storedRevenueData));
-        }
-        
-        // Load expense data for context
-        const storedExpenseData = localStorage.getItem('expense-data');
-        if (storedExpenseData) {
-          setExpenses(JSON.parse(storedExpenseData));
-        }
-      } catch (error) {
-        console.error("Error loading data:", error);
-        generateForecast(); // Fallback to mock data
-      }
-    };
-    
-    loadExistingData();
+    generateForecast();
   }, []);
 
   const generateForecast = async () => {
@@ -79,15 +39,11 @@ const AIForecast = () => {
     const data = generateMockForecast(months);
     setForecastData(data);
     
-    // Save to storage
-    await saveToStorage('forecast-data', JSON.stringify(data));
-    
     // Generate insights based on the forecast
     const newInsights = generateInsightsFromForecast(data);
     setInsights(newInsights);
     
     setIsLoading(false);
-    setDataSource("mock");
     
     toast.success("Forecast successfully generated", {
       description: `Using ${model.toUpperCase()} model for ${months} months prediction`
@@ -100,23 +56,6 @@ const AIForecast = () => {
 
   const handleModelChange = (value: string) => {
     setModel(value);
-  };
-  
-  const handleForecastUploaded = (importedForecast: ForecastData[]) => {
-    setForecastData(importedForecast);
-    setDataSource("imported");
-    
-    // Generate insights based on the loaded forecast
-    const newInsights = generateInsightsFromForecast(importedForecast);
-    setInsights(newInsights);
-  };
-  
-  const handleRevenueUploaded = (importedRevenue: any[]) => {
-    setRevenueData(importedRevenue);
-  };
-  
-  const handleExpensesUploaded = (importedExpenses: any[]) => {
-    setExpenses(importedExpenses);
   };
 
   // Format for the chart tooltip
@@ -158,20 +97,6 @@ const AIForecast = () => {
               Advanced AI-powered revenue predictions for business planning
             </p>
           </div>
-          <div>
-            <Button variant="outline" size="sm">
-              {dataSource === "imported" ? "Using Imported Data" : "Using Generated Data"}
-            </Button>
-          </div>
-        </div>
-        
-        <div className="mb-6">
-          <DatasetUploader 
-            onExpensesLoaded={handleExpensesUploaded}
-            onRevenueLoaded={handleRevenueUploaded}
-            onForecastLoaded={handleForecastUploaded}
-            setDataSource={setDataSource}
-          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
@@ -370,32 +295,20 @@ const AIForecast = () => {
                 <TabsContent value="data">
                   <div className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      This forecast is based on {dataSource === "imported" ? "imported" : "generated"} data:
+                      This forecast is based on historical transaction data from the following sources:
                     </p>
                     <ul className="space-y-2">
                       <li className="text-sm flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-primary" />
-                        <span>
-                          {expenses.length ? 
-                            `${expenses.length} expense records` : 
-                            "No expense data available"}
-                        </span>
+                        <span>Historical expense records (last 12 months)</span>
                       </li>
                       <li className="text-sm flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-primary" />
-                        <span>
-                          {revenueData.length ? 
-                            `${revenueData.length} revenue records` : 
-                            "No revenue data available"}
-                        </span>
+                        <span>Revenue transactions (last 12 months)</span>
                       </li>
                       <li className="text-sm flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-primary" />
-                        <span>
-                          {forecastData.length ? 
-                            `${forecastData.length} forecast periods` : 
-                            "No forecast data available"}
-                        </span>
+                        <span>Recurring subscription data</span>
                       </li>
                     </ul>
                   </div>
