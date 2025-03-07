@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/Header";
@@ -47,7 +46,6 @@ const Settings = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Load saved settings from storage on component mount
   useEffect(() => {
     const loadSettings = async () => {
       try {
@@ -100,7 +98,6 @@ const Settings = () => {
   const saveSettings = async () => {
     setIsLoading(true);
     try {
-      // Save all settings to storage
       await saveToStorage('ai-settings', JSON.stringify(aiSettings));
       await saveToStorage('data-settings', JSON.stringify(dataSettings));
       await saveToStorage('notification-settings', JSON.stringify(notificationSettings));
@@ -122,7 +119,6 @@ const Settings = () => {
   const testAiConfiguration = () => {
     toast.info("Testing AI configuration...");
     
-    // Simulate AI testing with a delay
     setTimeout(() => {
       if (aiSettings.confidenceThreshold > 80) {
         toast.warning("High confidence threshold may limit AI suggestions", {
@@ -139,7 +135,6 @@ const Settings = () => {
   const exportData = () => {
     toast.info("Preparing data export...");
     
-    // Simulate export process
     setTimeout(() => {
       const dummyData = {
         expenses: [
@@ -188,7 +183,6 @@ const Settings = () => {
           const parsedData = JSON.parse(content);
           
           if (parsedData.expenses || parsedData.revenue || parsedData.forecast) {
-            // In a real app, we would store this data
             setTimeout(() => {
               toast.success("Data imported successfully", {
                 description: `Imported ${parsedData.expenses?.length || 0} expenses, ${parsedData.revenue?.length || 0} revenue entries, and ${parsedData.forecast?.length || 0} forecast entries`
@@ -212,13 +206,11 @@ const Settings = () => {
   };
   
   const deleteAllData = () => {
-    // Show a confirmation dialog
     const confirmDelete = window.confirm("Are you sure you want to delete all data? This action cannot be undone.");
     
     if (confirmDelete) {
       toast.info("Deleting all data...");
       
-      // Simulate data deletion with a delay
       setTimeout(() => {
         toast.success("All data has been deleted", {
           description: "Your financial dashboard has been reset"
