@@ -16,7 +16,6 @@ const ReportsTab = ({ optimizationRecommendations }: ReportsTabProps) => {
       try {
         const source = await getFromStorage('data-source');
         if (source) {
-          // Fix the type error by ensuring we only set valid values
           setDataSource(source === "imported" ? "imported" : "mock");
         }
       } catch (error) {
@@ -30,7 +29,7 @@ const ReportsTab = ({ optimizationRecommendations }: ReportsTabProps) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <FinancialReportCard />
-      <OptimizationCard recommendations={optimizationRecommendations} />
+      <OptimizationCard recommendations={optimizationRecommendations} dataSource={dataSource} />
     </div>
   );
 };

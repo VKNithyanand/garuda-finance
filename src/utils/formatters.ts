@@ -6,10 +6,19 @@
 /**
  * Format a number as currency
  */
-export const formatCurrency = (value: number): string => {
+export const formatCurrency = (value: number, currency: string = 'USD'): string => {
+  const currencyMap: Record<string, string> = {
+    'usd': 'USD',
+    'eur': 'EUR',
+    'gbp': 'GBP',
+    'jpy': 'JPY'
+  };
+  
+  const currencyCode = currencyMap[currency.toLowerCase()] || 'USD';
+  
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency: currencyCode,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value);
