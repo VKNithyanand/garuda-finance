@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Header from "./Header";
 import ExpenseCard from "./ExpenseCard";
@@ -38,30 +37,25 @@ const Dashboard = () => {
   const [dataSource, setDataSource] = useState<"mock" | "imported">("mock");
 
   useEffect(() => {
-    // Simulate loading data from an API
     const timer = setTimeout(async () => {
       const mockExpenses = generateMockExpenses(50);
       setExpenses(mockExpenses);
       
-      // Generate mock data for charts and forecasts
       const mockRevenue = generateMockRevenue(12);
       setRevenueData(mockRevenue);
       
       const mockForecast = generateMockForecast(6);
       setForecastData(mockForecast);
       
-      // Generate optimization recommendations
       const recommendations = analyzeExpensesForOptimizations(mockExpenses);
       setOptimizationRecommendations(recommendations);
       
-      // Analyze expense trends and anomalies
       const trends = await analyzeExpenseTrends(mockExpenses);
       setExpenseTrends(trends);
       
       const anomalyData = await detectAnomalies(mockExpenses);
       setAnomalies(anomalyData);
       
-      // Save initial data to storage
       try {
         await saveToStorage('expense-data', JSON.stringify(mockExpenses));
         await saveToStorage('revenue-data', JSON.stringify(mockRevenue));
@@ -81,18 +75,15 @@ const Dashboard = () => {
     const updatedExpenses = [expense, ...expenses];
     setExpenses(updatedExpenses);
     
-    // Update optimization recommendations
     const newRecommendations = analyzeExpensesForOptimizations(updatedExpenses);
     setOptimizationRecommendations(newRecommendations);
     
-    // Re-analyze trends and anomalies
     const trends = await analyzeExpenseTrends(updatedExpenses);
     setExpenseTrends(trends);
     
     const anomalyData = await detectAnomalies(updatedExpenses);
     setAnomalies(anomalyData);
     
-    // Save updated data
     try {
       await saveToStorage('expense-data', JSON.stringify(updatedExpenses));
       await saveToStorage('optimization-data', JSON.stringify(newRecommendations));
@@ -111,18 +102,15 @@ const Dashboard = () => {
     );
     setExpenses(updatedExpenses);
     
-    // Update optimization recommendations
     const newRecommendations = analyzeExpensesForOptimizations(updatedExpenses);
     setOptimizationRecommendations(newRecommendations);
     
-    // Re-analyze trends and anomalies
     const trends = await analyzeExpenseTrends(updatedExpenses);
     setExpenseTrends(trends);
     
     const anomalyData = await detectAnomalies(updatedExpenses);
     setAnomalies(anomalyData);
     
-    // Save updated data
     try {
       await saveToStorage('expense-data', JSON.stringify(updatedExpenses));
       await saveToStorage('optimization-data', JSON.stringify(newRecommendations));
@@ -137,18 +125,15 @@ const Dashboard = () => {
     const filteredExpenses = expenses.filter(expense => expense.id !== id);
     setExpenses(filteredExpenses);
     
-    // Update optimization recommendations
     const newRecommendations = analyzeExpensesForOptimizations(filteredExpenses);
     setOptimizationRecommendations(newRecommendations);
     
-    // Re-analyze trends and anomalies
     const trends = await analyzeExpenseTrends(filteredExpenses);
     setExpenseTrends(trends);
     
     const anomalyData = await detectAnomalies(filteredExpenses);
     setAnomalies(anomalyData);
     
-    // Save updated data
     try {
       await saveToStorage('expense-data', JSON.stringify(filteredExpenses));
       await saveToStorage('optimization-data', JSON.stringify(newRecommendations));
@@ -163,36 +148,94 @@ const Dashboard = () => {
     setExpenses(importedExpenses);
     setDataSource("imported");
     
-    // Update optimization recommendations
     const newRecommendations = analyzeExpensesForOptimizations(importedExpenses);
     setOptimizationRecommendations(newRecommendations);
     
-    // Re-analyze trends and anomalies
     const trends = await analyzeExpenseTrends(importedExpenses);
     setExpenseTrends(trends);
     
     const anomalyData = await detectAnomalies(importedExpenses);
     setAnomalies(anomalyData);
+    
+    try {
+      await saveToStorage('expense-data', JSON.stringify(importedExpenses));
+      await saveToStorage('optimization-data', JSON.stringify(newRecommendations));
+    } catch (error) {
+      console.error("Failed to save updated expense data:", error);
+    }
+    
+    toast.success("Expenses dataset imported successfully", {
+      description: `Loaded ${importedExpenses.length} expenses`
+    });
   };
   
-  const handleRevenueUploaded = (importedRevenue: any[]) => {
+  const handleRevenueUploaded = async (importedRevenue: any[]) => {
     setRevenueData(importedRevenue);
     setDataSource("imported");
+    
+    try {
+      await saveToStorage('revenue-data', JSON.stringify(importedRevenue));
+    } catch (error) {
+      console.error("Failed to save updated revenue data:", error);
+    }
+    
+    toast.success("Revenue dataset imported successfully", {
+      description: `Loaded ${importedRevenue.length} revenue entries`
+    });
   };
   
-  const handleForecastUploaded = (importedForecast: any[]) => {
+  const handleForecastUploaded = async (importedForecast: any[]) => {
     setForecastData(importedForecast);
     setDataSource("imported");
+    
+    try {
+      await saveToStorage('forecast-data', JSON.stringify(importedForecast));
+    } catch (error) {
+      console.error("Failed to save updated forecast data:", error);
+    }
+    
+    toast.success("Forecast dataset imported successfully", {
+      description: `Loaded ${importedForecast.length} forecast entries`
+    });
   };
 
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const averageExpense = expenses.length ? Math.round(totalExpenses / expenses.length) : 0;
-  const potentialSavings = totalExpenses * 0.18; // This would come from actual optimization analysis
+  const potentialSavings = optimizationRecommendations.reduce(
+    (sum, recommendation) => sum + (recommendation.potentialSavings || 0), 
+    0
+  );
   
-  // Calculate month-over-month trend values using expenseTrends
-  const expenseTrend = expenseTrends ? -5.2 : -5.2; // Use actual value if available
-  const avgExpenseTrend = expenseTrends ? 2.1 : 2.1; // Use actual value if available
-  const savingsTrend = expenseTrends ? 8.4 : 8.4; // Use actual value if available
+  const thisMonth = new Date().getMonth();
+  const prevMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+  
+  const thisMonthExpenses = expenses.filter(expense => {
+    const expenseDate = new Date(expense.date);
+    return expenseDate.getMonth() === thisMonth;
+  });
+  const prevMonthExpenses = expenses.filter(expense => {
+    const expenseDate = new Date(expense.date);
+    return expenseDate.getMonth() === prevMonth;
+  });
+  
+  const thisMonthTotal = thisMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const prevMonthTotal = prevMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+  
+  const expenseTrend = prevMonthTotal > 0 
+    ? ((thisMonthTotal - prevMonthTotal) / prevMonthTotal) * 100 
+    : 0;
+  
+  const thisMonthAvg = thisMonthExpenses.length > 0 
+    ? thisMonthTotal / thisMonthExpenses.length 
+    : 0;
+  const prevMonthAvg = prevMonthExpenses.length > 0 
+    ? prevMonthTotal / prevMonthExpenses.length 
+    : 0;
+  const avgExpenseTrend = prevMonthAvg > 0 
+    ? ((thisMonthAvg - prevMonthAvg) / prevMonthAvg) * 100 
+    : 0;
+  
+  const savingsTrend = 8.4; // Placeholder, would ideally be calculated from historical data
   
   const categoryData = calculateCategoryBreakdown(expenses);
   const forecastInsights = generateInsights(revenueData);

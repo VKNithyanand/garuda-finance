@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { CircleDashed, TrendingUp, Calendar, Download, Database, ArrowUpDown, BrainCircuit } from "lucide-react";
 import { generateMockForecast, ForecastData, generateInsightsFromForecast } from "@/utils/mockData";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { getFromStorage } from "@/utils/storageUtils";
+import { getFromStorage, saveToStorage } from "@/utils/storageUtils";
 import DatasetUploader from "@/components/DatasetUploader";
 
 const AIForecast = () => {
@@ -48,12 +48,9 @@ const AIForecast = () => {
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     // Map periods to number of months
-    const months = {
-      "3months": 3,
-      "6months": 6,
-      "12months": 12,
-      "24months": 24
-    }[forecastPeriod] || 6;
+    const months = forecastPeriod === "3months" ? 3 : 
+                  forecastPeriod === "6months" ? 6 : 
+                  forecastPeriod === "12months" ? 12 : 24;
     
     // Generate forecast data
     const data = generateMockForecast(months);
@@ -62,6 +59,13 @@ const AIForecast = () => {
     // Generate insights based on the forecast
     const newInsights = generateInsightsFromForecast(data);
     setInsights(newInsights);
+    
+    // Save generated forecast data to storage
+    try {
+      await saveToStorage('forecast-data', JSON.stringify(data));
+    } catch (error) {
+      console.error("Failed to save forecast data:", error);
+    }
     
     setIsLoading(false);
     setDataSource("mock");
@@ -73,16 +77,40 @@ const AIForecast = () => {
 
   const handlePeriodChange = (value: string) => {
     setForecastPeriod(value);
+    if (dataSource === "mock") {
+      // If using mock data, regenerate the forecast when period changes
+      generateForecast();
+    } else {
+      toast.info("Using imported data", {
+        description: "Upload a new dataset to generate a forecast with different parameters"
+      });
+    }
   };
 
   const handleModelChange = (value: string) => {
     setModel(value);
+    if (dataSource === "mock") {
+      // If using mock data, regenerate the forecast when model changes
+      generateForecast();
+    } else {
+      toast.info("Using imported data", {
+        description: "Upload a new dataset to generate a forecast with different models"
+      });
+    }
   };
 
   const handleForecastLoaded = (importedForecast: ForecastData[]) => {
     setForecastData(importedForecast);
     setInsights(generateInsightsFromForecast(importedForecast));
     setDataSource("imported");
+    
+    // Save imported forecast data to storage
+    try {
+      saveToStorage('forecast-data', JSON.stringify(importedForecast));
+    } catch (error) {
+      console.error("Failed to save imported forecast data:", error);
+    }
+    
     toast.success("Using imported forecast data", {
       description: "AI predictions will now be based on your uploaded data"
     });
