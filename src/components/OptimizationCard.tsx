@@ -13,9 +13,10 @@ import { generateOptimizationReport, downloadReport } from "@/utils/optimization
 interface OptimizationCardProps {
   recommendations: OptimizationRecommendation[];
   className?: string;
+  dataSource?: "mock" | "imported";
 }
 
-const OptimizationCard = ({ recommendations, className }: OptimizationCardProps) => {
+const OptimizationCard = ({ recommendations, className, dataSource = "mock" }: OptimizationCardProps) => {
   const [visibleRecommendations, setVisibleRecommendations] = useState<OptimizationRecommendation[]>([]);
   const [implementedItems, setImplementedItems] = useState<string[]>([]);
   const [savings, setSavings] = useState(0);
@@ -78,6 +79,7 @@ const OptimizationCard = ({ recommendations, className }: OptimizationCardProps)
         <OptimizationHeader 
           savings={savings}
           totalPotentialSavings={totalPotentialSavings}
+          dataSource={dataSource}
         />
       </CardHeader>
       <CardContent>
