@@ -10,9 +10,10 @@ interface ForecastCardProps {
   data: ForecastData[];
   insights: string[];
   className?: string;
+  dataSource?: "mock" | "imported";
 }
 
-const ForecastCard = ({ data, insights, className }: ForecastCardProps) => {
+const ForecastCard = ({ data, insights, className, dataSource = "mock" }: ForecastCardProps) => {
   const [chartData, setChartData] = useState<ForecastData[]>([]);
   
   useEffect(() => {
@@ -51,11 +52,51 @@ const ForecastCard = ({ data, insights, className }: ForecastCardProps) => {
     return null;
   };
 
+  // Function to handle export
+  const handleExport = () => {
+    try {
+      // Create a CSV string from forecast data
+      const headers = ["date", "predicted", "lowerBound", "upperBound"];
+      const csvRows = [headers.join(",")];
+      
+      data.forEach(item => {
+        const row = [
+          item.date,
+          item.predicted,
+          item.lowerBound,
+          item.upperBound
+        ].join(",");
+        csvRows.push(row);
+      });
+      
+      const csvString = csvRows.join("\n");
+      
+      // Create a blob and download link
+      const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `revenue_forecast_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error exporting forecast:", error);
+    }
+  };
+
   return (
     <Card className={className}>
       <CardHeader className="pb-2 flex flex-row items-start justify-between">
         <div>
-          <CardTitle className="text-lg font-medium">Revenue Forecast</CardTitle>
+          <CardTitle className="text-lg font-medium">
+            Revenue Forecast
+            {dataSource === "imported" && (
+              <span className="ml-2 text-xs text-muted-foreground bg-muted/30 px-2 py-0.5 rounded">
+                From imported data
+              </span>
+            )}
+          </CardTitle>
         </div>
         <TooltipProvider>
           <UITooltip>
@@ -65,7 +106,7 @@ const ForecastCard = ({ data, insights, className }: ForecastCardProps) => {
               </div>
             </TooltipTrigger>
             <TooltipContent className="max-w-xs">
-              <p className="text-sm">Forecast based on historical data patterns</p>
+              <p className="text-sm">Forecast based on {dataSource === "imported" ? "imported" : "historical"} data patterns</p>
               <ul className="mt-2 list-disc list-inside text-xs space-y-1">
                 {insights.map((insight, index) => (
                   <li key={index}>{insight}</li>

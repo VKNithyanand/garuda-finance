@@ -31,7 +31,9 @@ const AIForecast = () => {
         const parsedData = JSON.parse(savedData);
         setForecastData(parsedData);
         setInsights(generateInsightsFromForecast(parsedData));
-        setDataSource("imported");
+        // Only set dataSource to imported if the data actually comes from an import
+        const source = await getFromStorage('data-source');
+        setDataSource(source === "imported" ? "imported" : "mock");
       } else {
         generateForecast();
       }
@@ -63,12 +65,14 @@ const AIForecast = () => {
     // Save generated forecast data to storage
     try {
       await saveToStorage('forecast-data', JSON.stringify(data));
+      // Make sure to set dataSource to mock when generating new forecast
+      await saveToStorage('data-source', "mock");
+      setDataSource("mock");
     } catch (error) {
       console.error("Failed to save forecast data:", error);
     }
     
     setIsLoading(false);
-    setDataSource("mock");
     
     toast.success("Forecast successfully generated", {
       description: `Using ${model.toUpperCase()} model for ${months} months prediction`
@@ -77,36 +81,25 @@ const AIForecast = () => {
 
   const handlePeriodChange = (value: string) => {
     setForecastPeriod(value);
-    if (dataSource === "mock") {
-      // If using mock data, regenerate the forecast when period changes
-      generateForecast();
-    } else {
-      toast.info("Using imported data", {
-        description: "Upload a new dataset to generate a forecast with different parameters"
-      });
-    }
   };
 
   const handleModelChange = (value: string) => {
     setModel(value);
-    if (dataSource === "mock") {
-      // If using mock data, regenerate the forecast when model changes
-      generateForecast();
-    } else {
-      toast.info("Using imported data", {
-        description: "Upload a new dataset to generate a forecast with different models"
-      });
-    }
   };
 
-  const handleForecastLoaded = (importedForecast: ForecastData[]) => {
+  const handleForecastLoaded = async (importedForecast: ForecastData[]) => {
     setForecastData(importedForecast);
-    setInsights(generateInsightsFromForecast(importedForecast));
+    
+    // Generate insights based on the imported data
+    const newInsights = generateInsightsFromForecast(importedForecast);
+    setInsights(newInsights);
+    
     setDataSource("imported");
     
     // Save imported forecast data to storage
     try {
-      saveToStorage('forecast-data', JSON.stringify(importedForecast));
+      await saveToStorage('forecast-data', JSON.stringify(importedForecast));
+      await saveToStorage('data-source', "imported");
     } catch (error) {
       console.error("Failed to save imported forecast data:", error);
     }
@@ -142,6 +135,41 @@ const AIForecast = () => {
       );
     }
     return null;
+  };
+
+  const handleExportForecast = () => {
+    try {
+      // Create a CSV string from forecast data
+      const headers = ["date", "predicted", "lowerBound", "upperBound"];
+      const csvRows = [headers.join(",")];
+      
+      forecastData.forEach(item => {
+        const row = [
+          item.date,
+          item.predicted,
+          item.lowerBound,
+          item.upperBound
+        ].join(",");
+        csvRows.push(row);
+      });
+      
+      const csvString = csvRows.join("\n");
+      
+      // Create a blob and download link
+      const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `revenue_forecast_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("Forecast data exported successfully");
+    } catch (error) {
+      console.error("Error exporting forecast:", error);
+      toast.error("Failed to export forecast data");
+    }
   };
 
   return (
@@ -216,7 +244,7 @@ const AIForecast = () => {
               <Button
                 className="w-full mt-4 bg-gradient-to-r from-primary to-indigo-500 hover:opacity-90 transition-opacity"
                 onClick={generateForecast}
-                disabled={isLoading || dataSource === "imported"}
+                disabled={isLoading}
               >
                 {isLoading ? (
                   <>
@@ -230,12 +258,6 @@ const AIForecast = () => {
                   </>
                 )}
               </Button>
-              
-              {dataSource === "imported" && (
-                <p className="text-xs text-muted-foreground text-center">
-                  Using imported data. To use AI-generated forecast, upload a new dataset.
-                </p>
-              )}
             </CardContent>
           </Card>
 
@@ -246,7 +268,12 @@ const AIForecast = () => {
                   <CardTitle className="text-lg font-medium">Revenue Forecast</CardTitle>
                   <CardDescription>AI-generated projection using {model.toUpperCase()} model</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" className="border-primary/20 hover:bg-primary/5">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="border-primary/20 hover:bg-primary/5"
+                  onClick={handleExportForecast}
+                >
                   <Download className="h-4 w-4 mr-2" />
                   Export
                 </Button>
