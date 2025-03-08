@@ -7,6 +7,7 @@ export interface GeneratedReport {
   title: string;
   date: string;
   type: ReportType;
+  source?: string; // Added the source property as optional
   data: any;
   charts: string[];
 }
