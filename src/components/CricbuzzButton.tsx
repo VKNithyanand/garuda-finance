@@ -9,7 +9,7 @@ const CricbuzzButton: React.FC = () => {
       <a href="https://garuda-sastra.netlify.app/" target="_self" rel="noopener noreferrer">
         <Button variant="cricbuzz" className="rounded-full">
           <ExternalLink size={16} />
-          <span>Cricbuzz</span>
+          <span>Home</span>
         </Button>
       </a>
     </div>
