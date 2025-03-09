@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Header from "./Header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,8 +11,7 @@ import MetricsSection from "./dashboard/MetricsSection";
 import OverviewTab from "./dashboard/OverviewTab";
 import ReportsTab from "./dashboard/ReportsTab";
 import SecurityTab from "./dashboard/SecurityTab";
-import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
+import CricbuzzButton from "./CricbuzzButton";
 
 const Dashboard = () => {
   const {
@@ -116,15 +114,7 @@ const Dashboard = () => {
         </Tabs>
       </main>
       
-      {/* Cricbuzz Button */}
-      <div className="fixed bottom-6 left-6">
-        <a href="https://www.cricbuzz.com" target="_blank" rel="noopener noreferrer">
-          <Button variant="cricbuzz" className="rounded-full">
-            <ExternalLink size={16} />
-            <span>Cricbuzz</span>
-          </Button>
-        </a>
-      </div>
+      <CricbuzzButton />
     </div>
   );
 };

@@ -1,7 +1,8 @@
-
+import React from "react";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/Header";
+import CricbuzzButton from "@/components/CricbuzzButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -39,17 +40,14 @@ const AIAnalysis = () => {
   const [activeTab, setActiveTab] = useState("trends");
 
   useEffect(() => {
-    // Generate vendor analysis on load
     setVendorAnalysis(generateVendorAnalysis(expenses));
     
-    // Run initial analyses
     handleAnalyzeTrends();
   }, [expenses]);
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     
-    // Load data for the selected tab if not already loaded
     if (value === "trends" && !trends) {
       handleAnalyzeTrends();
     } else if (value === "anomalies" && !anomalies) {
@@ -60,7 +58,7 @@ const AIAnalysis = () => {
   };
 
   const handleAnalyzeTrends = async () => {
-    if (trends) return; // Already analyzed
+    if (trends) return;
     
     setIsLoadingTrends(true);
     toast.info("Analyzing expense trends...");
@@ -78,7 +76,7 @@ const AIAnalysis = () => {
   };
 
   const handleDetectAnomalies = async () => {
-    if (anomalies) return; // Already analyzed
+    if (anomalies) return;
     
     setIsLoadingAnomalies(true);
     toast.info("Detecting expense anomalies...");
@@ -98,7 +96,7 @@ const AIAnalysis = () => {
   };
 
   const handleGenerateOptimization = async () => {
-    if (optimization.length > 0) return; // Already generated
+    if (optimization.length > 0) return;
     
     setIsLoadingOptimization(true);
     toast.info("Generating cost optimization suggestions...");
@@ -115,7 +113,6 @@ const AIAnalysis = () => {
     }
   };
 
-  // Format for currency display
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -125,7 +122,6 @@ const AIAnalysis = () => {
     }).format(value);
   };
 
-  // Format for percentage display
   const formatPercentage = (value: number) => {
     return `${value.toFixed(1)}%`;
   };
@@ -495,6 +491,7 @@ const AIAnalysis = () => {
           </TabsContent>
         </Tabs>
       </main>
+      <CricbuzzButton />
     </div>
   );
 };

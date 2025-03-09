@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/Header";
@@ -13,6 +14,7 @@ import { toast } from "sonner";
 import { Save, Wand2, Settings2, BrainCircuit, Download } from "lucide-react";
 import { saveToStorage, getFromStorage } from "@/utils/storageUtils";
 import { useNavigate } from "react-router-dom";
+import CricbuzzButton from "@/components/CricbuzzButton";
 
 const Settings = () => {
   const [aiSettings, setAiSettings] = useState({
@@ -318,6 +320,7 @@ const Settings = () => {
           </TabsContent>
         </Tabs>
       </main>
+      <CricbuzzButton />
     </div>
   );
 };

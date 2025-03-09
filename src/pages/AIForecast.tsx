@@ -1,4 +1,4 @@
-
+import React from "react";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/Header";
@@ -11,6 +11,7 @@ import { generateMockForecast, ForecastData, generateInsightsFromForecast } from
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { getFromStorage, saveToStorage } from "@/utils/storageUtils";
 import DatasetUploader from "@/components/DatasetUploader";
+import CricbuzzButton from "@/components/CricbuzzButton";
 
 const AIForecast = () => {
   const [forecastPeriod, setForecastPeriod] = useState("6months");
@@ -31,7 +32,6 @@ const AIForecast = () => {
         const parsedData = JSON.parse(savedData);
         setForecastData(parsedData);
         setInsights(generateInsightsFromForecast(parsedData));
-        // Only set dataSource to imported if the data actually comes from an import
         const source = await getFromStorage('data-source');
         setDataSource(source === "imported" ? "imported" : "mock");
       } else {
@@ -46,26 +46,20 @@ const AIForecast = () => {
   const generateForecast = async () => {
     setIsLoading(true);
     
-    // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Map periods to number of months
     const months = forecastPeriod === "3months" ? 3 : 
                   forecastPeriod === "6months" ? 6 : 
                   forecastPeriod === "12months" ? 12 : 24;
     
-    // Generate forecast data
     const data = generateMockForecast(months);
     setForecastData(data);
     
-    // Generate insights based on the forecast
     const newInsights = generateInsightsFromForecast(data);
     setInsights(newInsights);
     
-    // Save generated forecast data to storage
     try {
       await saveToStorage('forecast-data', JSON.stringify(data));
-      // Make sure to set dataSource to mock when generating new forecast
       await saveToStorage('data-source', "mock");
       setDataSource("mock");
     } catch (error) {
@@ -90,13 +84,11 @@ const AIForecast = () => {
   const handleForecastLoaded = async (importedForecast: ForecastData[]) => {
     setForecastData(importedForecast);
     
-    // Generate insights based on the imported data
     const newInsights = generateInsightsFromForecast(importedForecast);
     setInsights(newInsights);
     
     setDataSource("imported");
     
-    // Save imported forecast data to storage
     try {
       await saveToStorage('forecast-data', JSON.stringify(importedForecast));
       await saveToStorage('data-source', "imported");
@@ -109,7 +101,6 @@ const AIForecast = () => {
     });
   };
 
-  // Format for the chart tooltip
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -119,7 +110,6 @@ const AIForecast = () => {
     }).format(value);
   };
 
-  // Custom tooltip component
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -139,7 +129,6 @@ const AIForecast = () => {
 
   const handleExportForecast = () => {
     try {
-      // Create a CSV string from forecast data
       const headers = ["date", "predicted", "lowerBound", "upperBound"];
       const csvRows = [headers.join(",")];
       
@@ -155,7 +144,6 @@ const AIForecast = () => {
       
       const csvString = csvRows.join("\n");
       
-      // Create a blob and download link
       const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -175,6 +163,7 @@ const AIForecast = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <CricbuzzButton />
       <main className="container py-6">
         <div className="flex justify-between items-center mb-8">
           <div>
