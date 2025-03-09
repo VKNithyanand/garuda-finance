@@ -12,6 +12,8 @@ import MetricsSection from "./dashboard/MetricsSection";
 import OverviewTab from "./dashboard/OverviewTab";
 import ReportsTab from "./dashboard/ReportsTab";
 import SecurityTab from "./dashboard/SecurityTab";
+import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
 
 const Dashboard = () => {
   const {
@@ -65,7 +67,7 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
       <Header />
       <main className="container py-6">
         <DashboardHeader 
@@ -113,6 +115,16 @@ const Dashboard = () => {
           </TabsContent>
         </Tabs>
       </main>
+      
+      {/* Cricbuzz Button */}
+      <div className="fixed bottom-6 left-6">
+        <a href="https://www.cricbuzz.com" target="_blank" rel="noopener noreferrer">
+          <Button variant="cricbuzz" className="rounded-full">
+            <ExternalLink size={16} />
+            <span>Cricbuzz</span>
+          </Button>
+        </a>
+      </div>
     </div>
   );
 };
